@@ -9,8 +9,11 @@ import math
 from engine.safety import _footprint, is_background
 from engine.textmeasure import measure_text
 from engine.rules import check
+from engine.understand import understand
 
-WEIGHTS = {"overlap": 0.30, "readability": 0.30, "hierarchy": 0.15, "margin": 0.10, "coverage": 0.15}
+# Fitted to 72 blind pairwise picks by Claude subagent judges (tools/fit_weights.py); leave-one-out agreement 75%.
+WEIGHTS = {"overlap": 0.09, "readability": 0.185, "hierarchy": 0.04, "margin": 0.08, "coverage": 0.18,
+           "logo": 0.10, "cta": 0.09, "headline": 0.11, "product": 0.12}
 
 
 def _clamp(v: float) -> float:
@@ -103,7 +106,33 @@ def metrics(source: dict, output: dict) -> dict:
     else:
         margin = coverage = 0.0
 
+    # brand/size terms: logo, button and headline keep their size relative to the canvas
+    out_by_id = {e["id"]: e for e in output["elements"]}
+    design = understand(source)
+    sw, sh = source["canvas"]["width"], source["canvas"]["height"]
+
+    def rel_area(role):
+        us = design.by_role(role)
+        if not us:
+            return 1.0
+        u = us[0]
+        boxes = [_rect(out_by_id[m["id"]]) for m in u.members if m["id"] in out_by_id]
+        if not boxes:
+            return 0.0
+        a_out = _area((min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes),
+                       max(b[3] for b in boxes)))
+        return (a_out / (cw * ch)) / max(u.w * u.h / (sw * sh), 1e-9)
+
+    heads = design.by_role("headline")
+    if heads and heads[0].members[0]["id"] in out_by_id:
+        hm = heads[0].members[0]
+        head_rel = (out_by_id[hm["id"]]["font_size"] / min(cw, ch)) / (hm["font_size"] / min(sw, sh))
+    else:
+        head_rel = 1.0
+    cta_role = "cta" if design.by_role("cta") else "cta_text"
     terms = {"overlap": overlap, "readability": readability, "hierarchy": hierarchy, "margin": margin,
-             "coverage": coverage}
+             "coverage": coverage, "logo": _clamp(rel_area("logo") / 0.6),
+             "cta": _clamp(rel_area(cta_role) / 0.5), "headline": _clamp(head_rel / 0.7),
+             "product": _clamp(rel_area("product") / 0.6)}
     score = 0.0 if errors else 100 * sum(WEIGHTS[k] * v for k, v in terms.items())
     return {"score": score, "errors": errors, "warns": [m for s, m in probs if s == "warn"], **terms}

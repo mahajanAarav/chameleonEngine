@@ -6,6 +6,9 @@ Story shapes (9:16) keep content out of the top 14% and bottom 35%.
 
 layout_split: moderately wide targets. Media column on the left, text column on the right.
 
+layout_spread: keep the original composition. Sizes scale uniformly, positions are
+remapped proportionally, so a taller canvas spreads the same arrangement out.
+
 layout_row: wide banners. Columns left to right: logo, product, text (headline,
 supporting text, plain button text), badges, ribbon/other, button. Fine print and
 the watermark share a thin strip along the bottom. Decoration keeps its shape.
@@ -450,7 +453,7 @@ def layout_stack(design: Design, TW: float, TH: float, P: dict):
     if col is None or not col[0]:
         return None
     out: dict[str, dict] = {}
-    if not _flow(col[0], top, H, pad, Wc, out):
+    if not _flow(col[0], top, H, pad, Wc, out, P.get("gcap", 0.07)):
         return None
     _finish(design, TW, TH, out, pad, strip_h, edge, col[1])
     return out
@@ -477,10 +480,34 @@ def layout_split(design: Design, TW: float, TH: float, P: dict):
 
 
 STACK_PARAMS = [
-    {"logo": lg, "prod": pf, "hcap": hc, "cta": ct}
+    {"logo": lg, "prod": pf, "hcap": hc, "cta": ct, "gcap": gc}
     for lg in (0.35, 0.55) for pf in (0.22, 0.32, 0.42) for hc in (0.06, 0.09) for ct in (0.055, 0.07)
+    for gc in (0.07, 0.18)
 ]
 SPLIT_PARAMS = [
     {"mw": mw, "logo": 0.7, "logo_h": 0.18, "prod": pf, "hcap": hc, "cta": ct}
     for mw in (0.38, 0.46) for pf in (0.55, 0.72) for hc in (0.08, 0.12) for ct in (0.1, 0.14)
 ]
+
+
+def layout_spread(design: Design, TW: float, TH: float, P: dict):
+    from engine.safety import _fit_unit, _keep_text_inside
+    sw, sh = design.canvas["width"], design.canvas["height"]
+    sx, sy = TW / sw, TH / sh
+    s = min(sx, sy)
+    out: dict[str, dict] = {}
+    for u in design.units:
+        if u.role == "bg":
+            e = copy.deepcopy(u.members[0])
+            e.update(x=0.0, y=0.0, width=float(TW), height=float(TH), fit="cover")
+            out[e["id"]] = e
+            continue
+        els = _xform(u, s, (u.bbox[0] + u.bbox[2]) / 2 * sx, (u.bbox[1] + u.bbox[3]) / 2 * sy)
+        _fit_unit(els, TW, TH)
+        for e in els:
+            out[e["id"]] = e
+    _keep_text_inside(list(out.values()), TW, TH)
+    return out
+
+
+SPREAD_PARAMS = [{}]

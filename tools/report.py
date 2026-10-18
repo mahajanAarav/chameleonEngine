@@ -44,14 +44,14 @@ def bucket(src_c: dict, dst: tuple[int, int]) -> str:
     return "ultra-tall"
 
 
-def cases(split: str, n: int, nsizes):
+def cases(split: str, n: int, nsizes, skip: int = 0):
     """Yield (case_id, source, (tw, th))."""
     if split == "samples":
         for f in sorted(glob.glob("input/*.json")):
             t = json.load(open(f))
             yield Path(f).stem, t["source"], (t["target_canvas"]["width"], t["target_canvas"]["height"])
         return
-    for seed, src in generate_set(split, n):
+    for seed, src in generate_set(split, n + skip)[skip:]:
         sc = (src["canvas"]["width"], src["canvas"]["height"])
         names = [k for k, v in SIZES.items() if v != sc]
         if nsizes != "all":

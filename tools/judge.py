@@ -74,10 +74,106 @@ def make(a_name, b_name, n, split, nsizes, out):
     print(f"{len(key)} pairs in {out}; give subagents {out}/PROMPT.md")
 
 
+def make_cands(n, split, nsizes, out, skip=0, maxgap=1e9):
+    """Pairs of two different valid candidate layouts from the engine for the same case:
+    A = the best by our score, B = another candidate. Tests whether our score ranks layouts like the judge."""
+    from engine.resize import candidates
+    out = Path(out)
+    out.mkdir(parents=True, exist_ok=True)
+    rng = random.Random(11)
+    key, i = {}, 0
+    for cid, src, (tw, th) in cases(split, n, nsizes, skip):
+        cands = candidates(src, {"width": tw, "height": th})
+        scored = [(name, o, metrics(src, o)) for name, o in cands]
+        valid = [(nm, o, m) for nm, o, m in scored if not m["errors"]]
+        if len(valid) < 2:
+            continue
+        valid.sort(key=lambda t: -t[2]["score"])
+        best = valid[0]
+        others = [t for t in valid[1:] if best[2]["score"] - maxgap <= t[2]["score"] <= best[2]["score"] - 1.0 and t[1] != best[1]]
+        if not others:
+            continue
+        other = rng.choice(others)
+        flip = rng.random() < 0.5
+        left, right = (other, best) if flip else (best, other)
+        ims = []
+        for _, o, _ in (left, right):
+            im = _render(o, out / "_tmp.png")
+            im.thumbnail((700, 700))
+            ims.append(im)
+        sheet = Image.new("RGB", (ims[0].width + ims[1].width + 60, max(ims[0].height, ims[1].height) + 50), "white")
+        dr = ImageDraw.Draw(sheet)
+        sheet.paste(ims[0], (20, 40))
+        sheet.paste(ims[1], (40 + ims[0].width, 40))
+        dr.text((20, 10), "A", fill="black")
+        dr.text((40 + ims[0].width, 10), "B", fill="black")
+        name = f"pair_{i:02d}"
+        sheet.save(out / f"{name}.png")
+        key[name] = {"case": cid, "A": left[0], "B": right[0],
+                     "terms": {left[0]: {k: v for k, v in left[2].items() if isinstance(v, float)},
+                               right[0]: {k: v for k, v in right[2].items() if isinstance(v, float)}},
+                     "score": {left[0]: left[2]["score"], right[0]: right[2]["score"]}}
+        i += 1
+    (out / "_tmp.png").unlink(missing_ok=True)
+    json.dump(key, open(out / "key.json", "w"), indent=1)
+    json.dump({"split": split, "n": n, "nsizes": nsizes, "skip": skip}, open(out / "meta.json", "w"))
+    (out / "PROMPT.md").write_text(PROMPT.format(out=out))
+    print(f"{len(key)} candidate pairs in {out}")
+
+
+OLD_WEIGHTS = {"overlap": 0.30, "readability": 0.30, "hierarchy": 0.15, "margin": 0.10, "coverage": 0.15,
+               "logo": 0.0, "cta": 0.0, "headline": 0.0, "product": 0.0}
+
+
+def make_weights(n, split, nsizes, out, skip=0):
+    """Pairs where A/B are the layouts picked by the old vs the new scorer weights (only where they differ).
+    The 'engine' labels in key.json are 'old' and 'new'; tally then shows which weights the judges prefer."""
+    from engine.resize import candidates
+    from engine.score import WEIGHTS
+    out = Path(out)
+    out.mkdir(parents=True, exist_ok=True)
+    rng = random.Random(5)
+    key, i = {}, 0
+    for cid, src, (tw, th) in cases(split, n, nsizes, skip):
+        valid = []
+        for name, o in candidates(src, {"width": tw, "height": th}):
+            m = metrics(src, o)
+            if not m["errors"]:
+                valid.append((name, o, m))
+        if len(valid) < 2:
+            continue
+        pick = lambda w: max(valid, key=lambda t: sum(w.get(k, 0) * t[2][k] for k in OLD_WEIGHTS))
+        old, new = pick(OLD_WEIGHTS), pick(WEIGHTS)
+        if old[1] == new[1]:
+            continue
+        flip = rng.random() < 0.5
+        left, right = ((new, "new"), (old, "old")) if flip else ((old, "old"), (new, "new"))
+        ims = []
+        for (t, _) in (left, right):
+            im = _render(t[1], out / "_tmp.png")
+            im.thumbnail((700, 700))
+            ims.append(im)
+        sheet = Image.new("RGB", (ims[0].width + ims[1].width + 60, max(ims[0].height, ims[1].height) + 50), "white")
+        dr = ImageDraw.Draw(sheet)
+        sheet.paste(ims[0], (20, 40))
+        sheet.paste(ims[1], (40 + ims[0].width, 40))
+        dr.text((20, 10), "A", fill="black")
+        dr.text((40 + ims[0].width, 10), "B", fill="black")
+        name = f"pair_{i:02d}"
+        sheet.save(out / f"{name}.png")
+        key[name] = {"case": cid, "A": left[1], "B": right[1], "score": {"old": 0.0, "new": 0.0}}
+        i += 1
+    (out / "_tmp.png").unlink(missing_ok=True)
+    json.dump(key, open(out / "key.json", "w"), indent=1)
+    print(f"{len(key)} old-vs-new pairs in {out}")
+
+
 def tally(out):
     out = Path(out)
     key = json.load(open(out / "key.json"))
-    picks = json.load(open(out / "picks.json"))
+    picks = {}
+    for f in sorted(out.glob("picks*.json")):
+        picks.update(json.load(open(f)))
     wins, agree, n = {}, 0, 0
     for name, k in key.items():
         if name not in picks:
@@ -94,15 +190,21 @@ def tally(out):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["make", "tally"])
+    ap.add_argument("cmd", choices=["make", "make-cands", "make-weights", "tally"])
     ap.add_argument("--a", default="engine.resize:resize")
     ap.add_argument("--b", default="baseline")
     ap.add_argument("-n", type=int, default=12)
     ap.add_argument("--split", default="train")
     ap.add_argument("--sizes", default="1")
     ap.add_argument("--out", default="/tmp/judge")
+    ap.add_argument("--skip", type=int, default=0)
+    ap.add_argument("--maxgap", type=float, default=1e9)
     a = ap.parse_args()
     if a.cmd == "make":
         make(a.a, a.b, a.n, a.split, a.sizes, a.out)
+    elif a.cmd == "make-weights":
+        make_weights(a.n, a.split, a.sizes, a.out, a.skip)
+    elif a.cmd == "make-cands":
+        make_cands(a.n, a.split, a.sizes, a.out, a.skip, a.maxgap)
     else:
         tally(a.out)

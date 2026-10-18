@@ -40,23 +40,21 @@ def _round(el: dict) -> dict:
     return el
 
 
-def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, Any]:
-    """Build candidate layouts, drop any that break a rule, keep the best-scoring one.
+OVERLAP_OK = 0.85  # overlap term at or above this counts as collision-free
 
-    The safety net is always a candidate, so the result is never worse than it
-    by our own score.
-    """
-    from engine.layout import (ROW_PARAMS, SPLIT_PARAMS, STACK_PARAMS, layout_row, layout_split,
-                               layout_stack)
-    from engine.score import metrics
+
+def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
+    """All candidate layouts as (name, output). Index 0 is always the safety net."""
+    from engine.layout import (ROW_PARAMS, SPLIT_PARAMS, SPREAD_PARAMS, STACK_PARAMS, layout_row,
+                               layout_split, layout_spread, layout_stack)
     from engine.understand import understand
 
     tw, th = target_canvas["width"], target_canvas["height"]
     canvas = {"width": tw, "height": th}
-    cands = [safety_resize(source, target_canvas)]
+    cands = [("safety", safety_resize(source, target_canvas))]
 
     design = understand(source)
-    templates = []
+    templates = [(layout_spread, SPREAD_PARAMS)]
     if tw / th >= 2.5:
         templates.append((layout_row, ROW_PARAMS))
     if tw / th <= 1.6:
@@ -65,19 +63,29 @@ def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
         templates.append((layout_split, SPLIT_PARAMS))
     ids = {e["id"] for e in source["elements"]}
     for fn, params in templates:
-        for P in params:
+        for pi, P in enumerate(params):
             try:
                 placed = fn(design, tw, th, P)
             except Exception:
                 placed = None
             if placed and set(placed) == ids:
-                cands.append({"canvas": canvas, "elements": [_round(placed[e["id"]]) for e in source["elements"]]})
+                cands.append((f"{fn.__name__}#{pi}",
+                              {"canvas": canvas, "elements": [_round(placed[e["id"]]) for e in source["elements"]]}))
+    return cands
 
-    best, best_score = cands[0], -1.0
-    for c in cands:
-        s = metrics(source, c)["score"]
-        if s > best_score:
-            best, best_score = c, s
+
+def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, Any]:
+    """Keep the best-scoring candidate. The safety net is always a candidate, so the result is
+    never worse than it by our own score."""
+    from engine.score import metrics
+
+    # collisions are the judge's first criterion, so a layout with real overlap only wins if nothing clean exists
+    best, best_key = None, (-1, -1.0)
+    for _, c in candidates(source, target_canvas):
+        m = metrics(source, c)
+        key = (m["overlap"] >= OVERLAP_OK, m["score"])
+        if key > best_key:
+            best, best_key = c, key
     return best
 
 
