@@ -46,7 +46,8 @@ def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
     The safety net is always a candidate, so the result is never worse than it
     by our own score.
     """
-    from engine.layout import ROW_PARAMS, layout_row
+    from engine.layout import (ROW_PARAMS, SPLIT_PARAMS, STACK_PARAMS, layout_row, layout_split,
+                               layout_stack)
     from engine.score import metrics
     from engine.understand import understand
 
@@ -55,13 +56,21 @@ def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
     cands = [safety_resize(source, target_canvas)]
 
     design = understand(source)
+    templates = []
     if tw / th >= 2.5:
-        for P in ROW_PARAMS:
+        templates.append((layout_row, ROW_PARAMS))
+    if tw / th <= 1.6:
+        templates.append((layout_stack, STACK_PARAMS))
+    if 1.0 <= tw / th <= 3.0:
+        templates.append((layout_split, SPLIT_PARAMS))
+    ids = {e["id"] for e in source["elements"]}
+    for fn, params in templates:
+        for P in params:
             try:
-                placed = layout_row(design, tw, th, P)
+                placed = fn(design, tw, th, P)
             except Exception:
                 placed = None
-            if placed and set(placed) == {e["id"] for e in source["elements"]}:
+            if placed and set(placed) == ids:
                 cands.append({"canvas": canvas, "elements": [_round(placed[e["id"]]) for e in source["elements"]]})
 
     best, best_score = cands[0], -1.0
