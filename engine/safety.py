@@ -79,6 +79,30 @@ def _fit_unit(unit: list[dict], tw: float, th: float) -> None:
             e["corner_radius"] *= k
 
 
+def _keep_text_inside(elements: list[dict], tw: float, th: float) -> None:
+    """Text spills below its box, so check its real wrapped extent and nudge/shrink to fit."""
+    try:
+        from engine.textmeasure import measure_text
+    except Exception:
+        return
+    for el in elements:
+        if el["type"] != "text" or el.get("rotation"):
+            continue
+        for _ in range(40):
+            m = measure_text(el)
+            over_b = el["y"] + m["height"] - th
+            if m["max_line_width"] > tw + EPS or (over_b > EPS and el["y"] <= EPS) or el["font_size"] < 1:
+                if el["font_size"] <= 1:
+                    break
+                el["font_size"] = max(1, el["font_size"] - 1)
+                continue
+            if over_b > EPS:
+                el["y"] -= over_b
+            break
+        el["height"] = max(el["height"], measure_text(el)["height"])
+        el["x"] = min(max(el["x"], 0), max(0, tw - el["width"]))
+
+
 def safety_resize(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, Any]:
     sw, sh = source["canvas"]["width"], source["canvas"]["height"]
     tw, th = target_canvas["width"], target_canvas["height"]
@@ -105,6 +129,8 @@ def safety_resize(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict
 
     for unit in _units(movable):
         _fit_unit(unit, tw, th)
+
+    _keep_text_inside(elements, tw, th)
 
     for el in elements:
         for k in ("x", "y", "width", "height"):
