@@ -66,7 +66,7 @@ Circles become ovals, pills become long bars, text shrinks to unreadable sizes (
 Which fields besides x/y/w/h/font_size may change; how to handle elements that can't fit at extreme sizes; whether edge-bleeding decoration and rotated corners count as off-canvas; whether the target size catalogue is published; whether hidden designs all use the Solstice brand kit; model list, hardware limits and code-freeze date.
 
 ## Current status
-Setup done (baseline runs locally with real renders, pushed to GitHub, renderer probe done). Docker test not yet run. NEXT STEP: build the safety net in engine/resize.py.
+Setup done. Docker test passes (offline, amd64; needs Docker Desktop with Rosetta enabled on Apple Silicon, QEMU segfaults). Safety net built (engine/safety.py, called from engine/resize.py with baseline fallback): no stretching, nothing off-canvas, but small and unreadable in wide banners. Full build plan in docs/PLAN.md. NEXT STEP: measuring stick in tools/ (sizes catalogue, strict checker, synthetic designs, report command).
 
 ## Commands
 - Run engine: `source .venv/bin/activate && python -m engine.main`
