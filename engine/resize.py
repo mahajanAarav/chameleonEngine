@@ -33,6 +33,45 @@ def _baseline_stretch(source: dict[str, Any], target_canvas: dict[str, Any]) -> 
     }
 
 
+def _round(el: dict) -> dict:
+    for k in ("x", "y", "width", "height", "corner_radius"):
+        if k in el:
+            el[k] = round(el[k], 2)
+    return el
+
+
+def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, Any]:
+    """Build candidate layouts, drop any that break a rule, keep the best-scoring one.
+
+    The safety net is always a candidate, so the result is never worse than it
+    by our own score.
+    """
+    from engine.layout import ROW_PARAMS, layout_row
+    from engine.score import metrics
+    from engine.understand import understand
+
+    tw, th = target_canvas["width"], target_canvas["height"]
+    canvas = {"width": tw, "height": th}
+    cands = [safety_resize(source, target_canvas)]
+
+    design = understand(source)
+    if tw / th >= 2.5:
+        for P in ROW_PARAMS:
+            try:
+                placed = layout_row(design, tw, th, P)
+            except Exception:
+                placed = None
+            if placed and set(placed) == {e["id"] for e in source["elements"]}:
+                cands.append({"canvas": canvas, "elements": [_round(placed[e["id"]]) for e in source["elements"]]})
+
+    best, best_score = cands[0], -1.0
+    for c in cands:
+        s = metrics(source, c)["score"]
+        if s > best_score:
+            best, best_score = c, s
+    return best
+
+
 def resize(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, Any]:
     """
     Args:
@@ -46,6 +85,10 @@ def resize(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
     their aspect ratio, text content/font family untouched, no pixel changes.
     Never raises: falls back to simpler strategies on any error.
     """
+    try:
+        return _smart(source, target_canvas)
+    except Exception:
+        pass
     try:
         return safety_resize(source, target_canvas)
     except Exception:
