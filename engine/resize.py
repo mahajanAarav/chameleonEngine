@@ -75,6 +75,11 @@ def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
             if placed and set(placed) == ids:
                 cands.append((f"{fn.__name__}#{pi}",
                               {"canvas": canvas, "elements": [_round(placed[e["id"]]) for e in source["elements"]]}))
+    try:  # layouts suggested by any plugged-in model (none ship with the engine)
+        from engine.proposer import propose
+        cands += propose(source, target_canvas)
+    except Exception:
+        pass
     return cands
 
 
@@ -88,10 +93,12 @@ def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
     best, best_key = None, (-1, -1, -1.0)
     for _, c in candidates(source, target_canvas):
         m = metrics(source, c)
+        if m["errors"]:  # a layout that breaks a hard rule is never eligible, whatever else it scores
+            continue
         key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, m["score"])
         if key > best_key:
             best, best_key = c, key
-    return best
+    return best if best is not None else safety_resize(source, target_canvas)
 
 
 def resize(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, Any]:

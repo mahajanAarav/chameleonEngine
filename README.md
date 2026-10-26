@@ -1,99 +1,84 @@
-# CHAMELEON — starter repo
+# Chameleon Engine
 
-This is the scaffolding for your engine. It handles input loading, output
-writing, rendering, and Docker packaging — so the only file you need to
-edit is **`engine/resize.py`**.
+A deterministic, offline layout engine for `resize(source, target_canvas)`. It rebuilds each design for the new
+shape instead of stretching it: the same elements, new positions, sizes and font sizes. No image is ever redrawn.
+No model ships inside the engine, but any model can be plugged in (see **Swappable models**).
 
-```
-input:  a task JSON (source design + target canvas)
-              |
-              v
-        engine/resize.py   <-- YOU IMPLEMENT THIS
-              |
-              v
-output: <task>_output.json  (schema-valid resized design)
-        <task>_output.png   (rendered preview)
-```
-
-Both the JSON and the PNG are what get evaluated — see `RULES.md`.
-
-## Repo layout
-
-```
-engine/
-  resize.py        <- implement your approach here
-  main.py           <- orchestrator (input -> resize() -> output). Don't need to edit this.
-renderer/           <- the real renderer (transformer-convertor + cr-renderer), already vendored
-brand_kit/
-  assets/           <- image files referenced by asset_id in the sample designs
-  fonts/            <- font files matching the schema's font_family values
-input/               <- drop task JSON files here for local testing (3 samples included)
-output/              <- results land here
-chameleon_design_schema_v0.9.json   <- full field-by-field spec for the design format
-Dockerfile
-RULES.md
-```
-
-## Quick start (no Docker needed for iterating on `resize()`)
+## Run it
 
 ```bash
-pip install -r requirements.txt
-python -m engine.main
+source .venv/bin/activate
+python -m engine.main            # every task in input/ -> output/<task>_output.json + .png
 ```
 
-This processes every `*.json` file in `input/` (the 3 sample designs are
-already there — one per difficulty level) and writes an `_output.json` and
-`_output.png` for each into `output/`.
-
-The included baseline is a **uniform stretch** — deliberately the wrong
-approach (see the main brief: "a naive program stretches the picture; a
-good one moves the furniture"). It's there so the pipeline runs on day
-one. Run it once, look at `output/*_output.png`, and you'll see exactly
-why it's not good enough — that's the point. Replace the body of
-`resize()` in `engine/resize.py`, not just its constants.
-
-## What the self-check does (and doesn't do)
-
-`main.py` runs a quick structural check after every task — same element
-`id`s as the source, required fields present, nothing off-canvas. **This
-is not the official scorer.** It exists to catch obvious mistakes before
-you waste a submission on them. See `RULES.md` for what's actually
-checked and graded.
-
-A self-check warning does not fail the run — your JSON and PNG are still
-written either way. Read the warning; decide whether it's a real problem
-or, like the Level 2 sample's intentionally corner-bleeding decorative
-circle, an expected one.
-
-## The renderer
-
-`main.py` calls `renderer/converter/convert.py`'s `render_design_to_png()`
-(a vendored copy of `transformer-convertor`, wrapping `cr-renderer`) to
-produce each task's PNG — already wired in, no setup needed. It reads
-fonts/assets from `brand_kit/` and writes a real rendered preview, not a
-placeholder. If you ever see plain labeled boxes instead of real text and
-images in `output/*.png`, that means the import in `main.py` failed (e.g.
-`cr-renderer` didn't install — check `requirements.txt` installed cleanly)
-and it silently fell back to the box-and-label placeholder; don't judge
-your layout quality by that fallback.
-
-## Docker (how you'll actually be run)
+Docker, the same way scoring runs it (offline):
 
 ```bash
 docker build --platform linux/amd64 -t my-chameleon-engine .
-docker run --rm --network none \
-  -v $(pwd)/input:/app/input \
-  -v $(pwd)/output:/app/output \
-  my-chameleon-engine
+docker run --rm --network none -v $(pwd)/input:/app/input -v $(pwd)/output:/app/output my-chameleon-engine
 ```
 
-`--network none` matches how stage-one scoring runs: everything your
-engine needs must be installed at **build** time (add it to
-`requirements.txt`), not fetched at run time. If you're using a locally
-hosted model, bake its weights into the image during the build step.
+On Apple Silicon, turn on **Docker Desktop > Settings > General > Use Rosetta for x86_64/amd64 emulation**,
+otherwise the amd64 emulator crashes inside the renderer.
 
-## See also
+## How it works
 
-- `chameleon_design_schema_v0.9.json` — full input/output field spec
-- `RULES.md` — what's checked, what's graded, and what disqualifies a submission
-- FAQ — for anything not covered above
+1. **Understand** (`engine/understand.py`). Groups elements into units (a pill and its label move as one) and
+   labels each unit from geometry and style only, never from ids: background, logo, product, headline, supporting
+   text, button, badges, ribbon, decoration, watermark, fine print. It also derives reading order and importance.
+2. **Measure text exactly** (`engine/textmeasure.py`, `textfit.py`). Uses the renderer's own glyph widths and
+   greedy wrapper with the brand fonts, so the wrapped height we compute is the height that gets drawn. Whole-number
+   font sizes only (the renderer draws at `int(font_size)`).
+3. **Generate candidate layouts** (`engine/layout.py`): a banner **row** for wide targets, a centred **stack** for
+   tall and square ones (story safe zones kept clear), a **split** (media left, text right) for moderately wide
+   ones, a **spread** that keeps the original composition, plus **grow-to-fit** variants that search for the largest
+   product, button and text that still fit. Each template has a parameter grid, so a typical case yields 50 to
+   200 candidates. Decorative shapes keep their shape and are placed where they clash least.
+4. **Reject, gate, score** (`engine/resize.py`, `rules.py`, `score.py`). Every candidate is checked against the
+   hard rules (ids, nothing off-canvas including rotated footprints, image aspect, no `fill`, text and fonts
+   unchanged, wrapped text inside the canvas). Rule-breakers are never eligible. The rest are ranked by: no
+   collisions, then a clearly visible logo, then a quality score fitted to blind judge picks.
+5. **Never fail** (`engine/safety.py`). The uniform-scale safety net is always one of the candidates, and any error
+   anywhere falls back to it (and, as a last resort, to the starter's stretch), so output is always valid.
+
+## Swappable models
+
+`engine/proposer.py` is a socket for any model, small or large, local or hosted. A *proposer* is any function
+`proposer(source, target_canvas) -> layout | list[layout] | None`. Plug one in with no code change:
+
+```bash
+CHAMELEON_PROPOSER="mypkg.mymodule:propose"    # returns layouts directly
+CHAMELEON_MODEL="mypkg.mymodule:generate"      # any text model: generate(prompt: str) -> str
+```
+
+or in Python: `engine.proposer.register(fn)`. The adapter `llm_proposer(generate)` builds the prompt, parses the
+reply (JSON inside prose or code fences is fine) and returns a proposal. Safeguards: only geometry
+(x, y, width, height, font_size, corner_radius) is taken from a proposal and every other field is copied from the
+source, so a model cannot reword text, change fonts or drop elements; each proposal (and a repaired copy pulled back
+inside the canvas) must pass the same rule checker and gates as our own layouts to win; crashes, timeouts and
+garbage are ignored. Tested in `tools/test_proposer.py` with hostile and mock models. Nothing needs a network.
+
+## Measuring quality (`tools/`)
+
+| Command | What it does |
+|---|---|
+| `python -m tools.report` | Scores the engine on the official samples plus generated designs (train and held-out) across 25 real platform sizes; counts rule breaks |
+| `python -m tools.test_understand` | Role-detection accuracy against the answer key |
+| `python -m tools.test_proposer` | Tests for the swappable model slot |
+| `python -m tools.ref_report --refs data/refs --pairs DIR` | Blind A/B images of the engine against designer reference layouts |
+| `python -m tools.judge make-cands / tally` | Builds and tallies blind A/B pairs for judging |
+| `python -m tools.fit_weights data/judgments/r` | Fits scorer weights to judge picks |
+
+Data kept in the repo: `data/refs/` (24 designer reference layouts) and `data/judgments/` (blind picks).
+
+## Honest status
+
+- Zero rule breaks across all generated and official cases.
+- Our own code score (about 95) overstates quality: blind Claude judges preferred the designer reference over our
+  engine in about 20 of 24 cases. Measured gaps: the product is about 44% smaller than a designer would make it, the
+  button about 24% shorter, and decorations sometimes clash. The judges are Claude models and the test designs are
+  synthetic, so this is a proxy for the hidden grader, not the grader.
+- Very small banners (for example 320x50) with long headlines cannot be made fully readable.
+- Open questions for the organisers are listed in `CLAUDE.md`.
+
+The organisers' original starter README is kept as `STARTER_README.md`.
