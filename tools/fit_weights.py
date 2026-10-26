@@ -14,7 +14,25 @@ import random
 import sys
 from pathlib import Path
 
-TERMS = ["overlap", "readability", "hierarchy", "margin", "coverage", "logo", "cta", "headline", "product"]
+from engine.score import WEIGHTS
+
+TERMS = list(WEIGHTS)
+
+
+def recompute_ref(key, refs, **_):
+    """Reference-vs-engine pairs: terms of the designer layout and of the engine as the judges saw it
+    (before the logo gate existed)."""
+    import engine.resize as R
+    from engine.score import metrics
+    R.LOGO_OK = 0.0
+    for name, k in key.items():
+        n = name.split("_")[1]
+        t = json.load(open(f"{refs}/task_{n}.json"))
+        ref = json.load(open(f"{refs}/layout_{n}.json"))
+        out = R.resize(t["source"], t["target"])
+        k["terms"] = {"ref": {c: v for c, v in metrics(t["source"], ref).items() if isinstance(v, float)},
+                      "engine": {c: v for c, v in metrics(t["source"], out).items() if isinstance(v, float)}}
+    return key
 
 
 def recompute(key, split="train", n=20, nsizes="2", skip=0):
@@ -37,7 +55,8 @@ def load(dirs):
     for d in dirs:
         d = Path(d)
         meta = json.load(open(d / "meta.json")) if (d / "meta.json").exists() else {}
-        key = recompute(json.load(open(d / "key.json")), **meta)
+        raw = json.load(open(d / "key.json"))
+        key = recompute_ref(raw, **meta) if meta.get("kind") == "ref" else recompute(raw, **meta)
         picks = {}
         for f in sorted(d.glob("picks*.json")):
             picks.update(json.load(open(f)))
@@ -79,7 +98,7 @@ if __name__ == "__main__":
     rows = load(sys.argv[1:])
     if not rows:
         sys.exit("no judged pairs found")
-    cur = [0.30, 0.30, 0.15, 0.10, 0.15, 0.0, 0.0, 0.0, 0.0]
+    cur = [WEIGHTS[t] for t in TERMS]
     print(f"{len(rows)} judged pairs")
     print(f"current weights agree with judges on {agree(rows, cur):.0%}")
     # per-term signal: how often the judge's winner has the larger value of just that term

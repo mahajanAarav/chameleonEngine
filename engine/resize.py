@@ -41,6 +41,7 @@ def _round(el: dict) -> dict:
 
 
 OVERLAP_OK = 0.85  # overlap term at or above this counts as collision-free
+LOGO_OK = 0.45  # logo term at or above this counts as a clearly visible logo (about 27% of its original relative area)
 
 
 def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
@@ -79,11 +80,12 @@ def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
     never worse than it by our own score."""
     from engine.score import metrics
 
-    # collisions are the judge's first criterion, so a layout with real overlap only wins if nothing clean exists
-    best, best_key = None, (-1, -1.0)
+    # collisions are the judge's first criterion, then a clearly visible logo (brand), then our score;
+    # a layout that fails a gate only wins if no candidate passes it
+    best, best_key = None, (-1, -1, -1.0)
     for _, c in candidates(source, target_canvas):
         m = metrics(source, c)
-        key = (m["overlap"] >= OVERLAP_OK, m["score"])
+        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, m["score"])
         if key > best_key:
             best, best_key = c, key
     return best

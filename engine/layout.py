@@ -49,6 +49,12 @@ def _pill(unit, h):
     return [s, t], w
 
 
+def _ratio(unit, el, head):
+    """Font size relative to the headline. A plain-text button stays at least 60% of it."""
+    r = max(0.3, min(0.9, el["font_size"] / head["font_size"]))
+    return max(r, 0.6) if unit.role == "cta_text" else r
+
+
 def _is_simple_pill(unit):
     kinds = [m["type"] for m in unit.members]
     return kinds.count("shape") == 1 and kinds.count("text") == 1 and len(kinds) == 2
@@ -112,10 +118,10 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
 
     # media
     for u in by("logo"):
-        e = _image(u, ch * P["logo"], 0.25 * TW)
+        e = _image(u, ch * P["logo"], 0.25 * TW * P.get("wcap", 1.0))
         cols.append(_col([e]))
     for u in by("product") + by("image"):
-        e = _image(u, ch * P["prod"], 0.3 * TW)
+        e = _image(u, ch * P["prod"], 0.3 * TW * P.get("wcap", 1.0))
         cols.append(_col([e]))
 
     # badges: stacked column, or a row inside the text column
@@ -129,7 +135,7 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
         while True:
             built = [_pill(u, h) for u in badges_simple]
             w = max(b[1] for b in built)
-            if (w <= 0.2 * TW and h * n + gb * (n - 1) <= ch) or h < 12:
+            if (w <= 0.2 * TW * P.get("wcap", 1.0) and h * n + gb * (n - 1) <= ch) or h < 12:
                 break
             h *= 0.92
         els = []
@@ -156,7 +162,7 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
         h = ch * P["cta"]
         while True:
             pe, w = _pill(u, h)
-            if w <= 0.3 * TW or h < 12:
+            if w <= 0.3 * TW * P.get("wcap", 1.0) or h < 12:
                 break
             h *= 0.92
         cols.append(_col(pe))
@@ -169,7 +175,7 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
         items.append((hd, 1.0))
         for u in sorted(by("supporting") + by("text") + by("cta_text"), key=lambda u: u.order):
             e = u.members[0]
-            items.append((e, max(0.3, min(0.9, e["font_size"] / hd["font_size"]))))
+            items.append((e, _ratio(u, e, hd)))
     elif by("supporting") + by("text") + by("cta_text"):
         for u in by("supporting") + by("text") + by("cta_text"):
             items.append((u.members[0], 1.0))
@@ -272,8 +278,9 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
 
 
 ROW_PARAMS = [
-    {"logo": lg, "prod": pr, "cta": ct, "badges": bm}
-    for lg in (0.75, 0.5) for pr in (1.0, 0.7) for ct in (0.5, 0.38) for bm in ("col", "row")
+    {"logo": lg, "prod": pr, "cta": ct, "badges": bm, "wcap": wc}
+    for lg in (0.75, 0.5, 0.3) for pr in (1.0, 0.7) for ct in (0.5, 0.38, 0.28) for bm in ("col", "row")
+    for wc in (1.0, 0.5)
 ]
 
 
@@ -333,7 +340,7 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
         if heads:
             hd = heads[0].members[0]
             texts_src.append((hd, 1.0))
-            texts_src += [(u.members[0], max(0.3, min(0.9, u.members[0]["font_size"] / hd["font_size"]))) for u in rest]
+            texts_src += [(u.members[0], _ratio(u, u.members[0], hd)) for u in rest]
         else:
             texts_src = [(u.members[0], 1.0) for u in rest]
         if texts_src:
@@ -449,12 +456,21 @@ def layout_stack(design: Design, TW: float, TH: float, P: dict):
     top, H, strip_h, edge = _band(design, TW, TH, pad)
     if Wc < 40 or H < 60:
         return None
-    col = _column(design, Wc, H, P, {"logo", "ribbon", "product", "text", "badges", "cta", "odd"})
+    parts = {"logo", "product", "text", "badges", "cta", "odd"} | (set() if P.get("rc") else {"ribbon"})
+    col = _column(design, Wc, H, P, parts)
     if col is None or not col[0]:
         return None
     out: dict[str, dict] = {}
     if not _flow(col[0], top, H, pad, Wc, out, P.get("gcap", 0.07)):
         return None
+    if P.get("rc"):
+        for u in design.by_role("ribbon"):
+            k = min(1.0, 0.35 * TW / max(u.w, 1e-6))
+            els = _xform(u, k, TW - pad - u.w * k / 2, top + u.h * k / 2)
+            x0, y0, x1, y1 = _extent(els)
+            _shift(els, -max(0, x1 - TW + pad // 2), -min(0, y0))
+            for e in els:
+                out[e["id"]] = e
     _finish(design, TW, TH, out, pad, strip_h, edge, col[1])
     return out
 
@@ -480,13 +496,13 @@ def layout_split(design: Design, TW: float, TH: float, P: dict):
 
 
 STACK_PARAMS = [
-    {"logo": lg, "prod": pf, "hcap": hc, "cta": ct, "gcap": gc}
-    for lg in (0.35, 0.55) for pf in (0.22, 0.32, 0.42) for hc in (0.06, 0.09) for ct in (0.055, 0.07)
-    for gc in (0.07, 0.18)
+    {"logo": 0.45, "prod": pf, "hcap": hc, "cta": ct, "gcap": gc, "rc": rc}
+    for pf in (0.25, 0.35, 0.45, 0.55) for hc in (0.05, 0.08, 0.13, 0.2) for ct in (0.05, 0.07)
+    for gc in (0.07, 0.18) for rc in (False, True)
 ]
 SPLIT_PARAMS = [
     {"mw": mw, "logo": 0.7, "logo_h": 0.18, "prod": pf, "hcap": hc, "cta": ct}
-    for mw in (0.38, 0.46) for pf in (0.55, 0.72) for hc in (0.08, 0.12) for ct in (0.1, 0.14)
+    for mw in (0.38, 0.46) for pf in (0.55, 0.72, 0.9) for hc in (0.05, 0.08, 0.12) for ct in (0.08, 0.12)
 ]
 
 

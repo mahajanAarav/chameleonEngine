@@ -1,0 +1,218 @@
+{
+ "pair_00": {
+  "case": "s1->LinkedIn Vertical",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_01": {
+  "case": "s1->Billboard",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_02": {
+  "case": "s2->Medium Rectangle",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_03": {
+  "case": "s2->Large Rectangle",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_04": {
+  "case": "s3->Instagram Story",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_05": {
+  "case": "s3->Billboard",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_06": {
+  "case": "s4->Instagram Story",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_07": {
+  "case": "s4->Wide Skyscraper",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_08": {
+  "case": "s6->Billboard",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_09": {
+  "case": "s6->Medium Rectangle",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_10": {
+  "case": "s7->Facebook Link Ad",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_11": {
+  "case": "s7->Instagram Portrait",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_12": {
+  "case": "s8->Instagram Story",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_13": {
+  "case": "s8->LinkedIn Landscape",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_14": {
+  "case": "s9->Instagram Landscape",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_15": {
+  "case": "s9->LinkedIn Banner",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_16": {
+  "case": "s5->LinkedIn Banner",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_17": {
+  "case": "s5->Instagram Story",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_18": {
+  "case": "s10->Billboard",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_19": {
+  "case": "s10->LinkedIn Square",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_20": {
+  "case": "s15->A4 Portrait",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_21": {
+  "case": "s15->Instagram Post",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_22": {
+  "case": "s20->Mobile Leaderboard",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_23": {
+  "case": "s20->Leaderboard",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ }
+}

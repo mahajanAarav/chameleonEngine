@@ -11,9 +11,11 @@ from engine.textmeasure import measure_text
 from engine.rules import check
 from engine.understand import understand
 
-# Fitted to 72 blind pairwise picks by Claude subagent judges (tools/fit_weights.py); leave-one-out agreement 75%.
-WEIGHTS = {"overlap": 0.09, "readability": 0.185, "hierarchy": 0.04, "margin": 0.08, "coverage": 0.18,
-           "logo": 0.10, "cta": 0.09, "headline": 0.11, "product": 0.12}
+# Fitted to blind judge picks (tools/fit_weights.py, data/judgments/): 24 designer-reference-vs-engine pairs,
+# leave-one-out agreement 83% (the old weights agreed 46% on the same pairs). "fill" alone predicted 88%.
+WEIGHTS = {"overlap": 0.03, "readability": 0.07, "hierarchy": 0.07, "margin": 0.04, "coverage": 0.095,
+           "logo": 0.04, "cta": 0.095, "headline": 0.055, "product": 0.08,
+           "prod_size": 0.105, "cta_size": 0.19, "head_size": 0.045, "fill": 0.06, "deco_clash": 0.03}
 
 
 def _clamp(v: float) -> float:
@@ -130,9 +132,38 @@ def metrics(source: dict, output: dict) -> dict:
     else:
         head_rel = 1.0
     cta_role = "cta" if design.by_role("cta") else "cta_text"
+
+    # absolute prominence (not relative to the source, not capped early): what blind judges rewarded
+    def frac(role):
+        us = design.by_role(role)
+        boxes = [_rect(out_by_id[m["id"]]) for u in us[:1] for m in u.members if m["id"] in out_by_id]
+        if not boxes:
+            return None
+        return _area((min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes),
+                      max(b[3] for b in boxes))) / (cw * ch)
+
+    pf, cf = frac("product"), frac(cta_role)
+    prod_size = 1.0 if pf is None else min(1.5, math.sqrt(pf) / 0.5)
+    cta_size = 1.0 if cf is None else min(1.5, math.sqrt(cf) / 0.25)
+    head_size = 1.0
+    if heads and heads[0].members[0]["id"] in out_by_id:
+        head_size = min(1.5, out_by_id[heads[0].members[0]["id"]]["font_size"] / min(cw, ch) / 0.08)
+    body = [r for e, r in content if src.get(e["id"], e).get("opacity", 1) >= 0.7]
+    fill = min(1.5, math.sqrt(sum(_area(r) for r in body) / (cw * ch)) / 0.6)
+    deco_ids = {m["id"] for u in design.by_role("decoration") for m in u.members}
+    clash = 0.0
+    for did in deco_ids:
+        if did not in out_by_id:
+            continue
+        dr = _rect(out_by_id[did])
+        for e, r in content:
+            if _area(r) > 0 and e["type"] in ("text", "image"):
+                clash += _inter(dr, r) / _area(r)
+    deco_clash = math.exp(-3 * clash)
     terms = {"overlap": overlap, "readability": readability, "hierarchy": hierarchy, "margin": margin,
              "coverage": coverage, "logo": _clamp(rel_area("logo") / 0.6),
              "cta": _clamp(rel_area(cta_role) / 0.5), "headline": _clamp(head_rel / 0.7),
-             "product": _clamp(rel_area("product") / 0.6)}
+             "product": _clamp(rel_area("product") / 0.6), "prod_size": prod_size, "cta_size": cta_size,
+             "head_size": head_size, "fill": fill, "deco_clash": deco_clash}
     score = 0.0 if errors else 100 * sum(WEIGHTS[k] * v for k, v in terms.items())
     return {"score": score, "errors": errors, "warns": [m for s, m in probs if s == "warn"], **terms}
