@@ -86,16 +86,21 @@ def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
 def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, Any]:
     """Keep the best-scoring candidate. The safety net is always a candidate, so the result is
     never worse than it by our own score."""
+    from engine.picker import Picker
     from engine.score import metrics
+
+    picker = Picker.load()  # learned from designer references; None -> hand-set score
+    tw, th = target_canvas["width"], target_canvas["height"]
 
     # collisions are the judge's first criterion, then a clearly visible logo (brand), then our score;
     # a layout that fails a gate only wins if no candidate passes it
     best, best_key = None, (-1, -1, -1.0)
-    for _, c in candidates(source, target_canvas):
+    for name, c in candidates(source, target_canvas):
         m = metrics(source, c)
         if m["errors"]:  # a layout that breaks a hard rule is never eligible, whatever else it scores
             continue
-        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, m["score"])
+        value = picker.predict(m, name, tw, th) if picker else m["score"]
+        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, value)
         if key > best_key:
             best, best_key = c, key
     return best if best is not None else safety_resize(source, target_canvas)

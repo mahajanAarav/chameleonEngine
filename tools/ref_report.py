@@ -24,15 +24,18 @@ def main():
     ap.add_argument("--engine", default="engine.resize:resize")
     ap.add_argument("--sheet", default="")
     ap.add_argument("--pairs", default="", help="write blind reference-vs-engine A/B pairs here")
+    ap.add_argument("--split", default="", help="only tasks of this split (train or heldout)")
     a = ap.parse_args()
     eng = load_engine(a.engine)
     rows = []
-    for tf in sorted(glob.glob(f"{a.refs}/task_[0-9][0-9].json")):
+    for tf in sorted(glob.glob(f"{a.refs}/task_*.json")):
         n = Path(tf).stem.split("_")[1]
         lf = Path(a.refs) / f"layout_{n}.json"
         if not lf.exists():
             continue
         task, ref = json.load(open(tf)), json.load(open(lf))
+        if a.split and task["split"] != a.split:
+            continue
         errs = [m for s, m in check(task["source"], ref) if s == "error"]
         out = eng(task["source"], task["target"])
         rows.append({"n": n, "case": task["case"], "split": task["split"], "ref_errors": errs, "task": task,
