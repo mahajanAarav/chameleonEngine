@@ -49,6 +49,15 @@ def _pill(unit, h):
     return [s, t], w
 
 
+def _head_cap(design: Design, TW: float, TH: float) -> float:
+    """Biggest sensible headline: 1.6x its original size, scaled with the square root of the canvas area."""
+    h = design.first("headline")
+    if h is None:
+        return 1e9
+    sw, sh = design.canvas["width"], design.canvas["height"]
+    return 1.6 * h.members[0]["font_size"] * (TW * TH / (sw * sh)) ** 0.5
+
+
 def _ratio(unit, el, head):
     """Font size relative to the headline. A plain-text button stays at least 60% of it."""
     r = max(0.3, min(0.9, el["font_size"] / head["font_size"]))
@@ -97,6 +106,40 @@ def _shift(els, dx, dy):
     for e in els:
         e["x"] += dx
         e["y"] += dy
+
+
+def _decorate(design: Design, TW: float, TH: float, out: dict, k_cap: float = 1.0):
+    """Place decoration (same shape, inside the canvas) where it covers text, logo and product least.
+
+    Tries the original relative spot and the four corners; if every spot still clashes it shrinks the
+    shape a few times. Everything already in `out` counts as content.
+    """
+    from engine.score import _area, _inter, _rect
+    sw, sh = design.canvas["width"], design.canvas["height"]
+    content = [_rect(e) for e in out.values() if e["type"] in ("text", "image") or e.get("group_id")]
+    content = [r for r in content if _area(r) > 0]
+    for u in design.by_role("decoration"):
+        k = min(k_cap, TW / sw, 0.9 * min(TW, TH) / max(u.w, u.h, 1e-6))
+        base = ((u.bbox[0] + u.bbox[2]) / 2 / sw * TW, (u.bbox[1] + u.bbox[3]) / 2 / sh * TH)
+        best = None
+        for shrink in (1.0, 0.75, 0.55):
+            kk = k * shrink
+            w, h = u.w * kk, u.h * kk
+            spots = [base, (w / 2, h / 2), (TW - w / 2, h / 2), (w / 2, TH - h / 2), (TW - w / 2, TH - h / 2)]
+            for sx, sy in spots:
+                els = _xform(u, kk, sx, sy)
+                x0, y0, x1, y1 = _extent(els)
+                _shift(els, -min(0, x0) - max(0, x1 - TW), -min(0, y0) - max(0, y1 - TH))
+                box = _extent(els)
+                clash = sum(_inter(box, r) / _area(r) for r in content)
+                moved = abs(sx - base[0]) + abs(sy - base[1])
+                key = (round(clash, 3), -shrink, moved)
+                if best is None or key < best[0]:
+                    best = (key, els)
+            if best[0][0] == 0.0:
+                break
+        for e in best[1]:
+            out[e["id"]] = e
 
 
 # ---------- the row template ----------
@@ -186,7 +229,8 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
     if items:
         if Wt < max(24.0, 0.15 * TW):
             return None
-        S, parts, total_h, ok = fit_stack(items, Wt, ch, ch * 0.6, extra_h=badge_row_h, gap_ratio=0.3)
+        S, parts, total_h, ok = fit_stack(items, Wt, ch, min(ch * 0.6, _head_cap(design, TW, TH)), extra_h=badge_row_h,
+                                          gap_ratio=0.3)
         if not ok:
             return None
         fine_cap = max(3, int(min(s for s, _ in parts) * 0.85))
@@ -258,16 +302,7 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
                  height=m["height"])
         out[e["id"]] = e
 
-    # decoration: same shape, scaled so it fits, centred where it was (relative), clamped inside
-    for u in by("decoration"):
-        k = min(1.0, 0.9 * TH / max(u.h, 1e-6), 0.9 * TW / max(u.w, 1e-6))
-        ucx = (u.bbox[0] + u.bbox[2]) / 2 / design.canvas["width"] * TW
-        ucy = (u.bbox[1] + u.bbox[3]) / 2 / design.canvas["height"] * TH
-        els = _xform(u, k, ucx, ucy)
-        x0, y0, x1, y1 = _extent(els)
-        _shift(els, -min(0, x0) - max(0, x1 - TW), -min(0, y0) - max(0, y1 - TH))
-        for e in els:
-            out[e["id"]] = e
+    _decorate(design, TW, TH, out)
 
     # background covers the canvas
     for u in by("bg"):
@@ -319,7 +354,7 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
     Returns (items, fine_cap) or None if the text cannot fit. fine_cap = size limit for fine print.
     """
     by = design.by_role
-    gmin = max(4.0, 0.012 * H)
+    gmin = max(4.0, P.get("need_gap", 0.012) * H)
     sc = max(1.0, min(Wc, H) / 800)  # size caps below were tuned for ~1080px canvases
     items: list = []
     if "logo" in parts:
@@ -375,7 +410,8 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
         h_text = H - used - gmin * (len(items) - 1)
         if h_text < 20:
             return None
-        S, parts_fit, _, ok = fit_stack(texts_src, Wc, h_text, P["hcap"] * Wc, min_size=6)
+        S, parts_fit, _, ok = fit_stack(texts_src, Wc, h_text, min(P["hcap"] * Wc, P.get("hcap_abs", 1e9)),
+                                        min_size=6)
         if not ok:
             return None
         fine_cap = max(3, int(min(s for s, _ in parts_fit) * 0.85))
@@ -389,11 +425,12 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
     return items, fine_cap
 
 
-def _flow(items: list, top: float, H: float, x0: float, Wc: float, out: dict, g_cap: float = 0.07) -> bool:
+def _flow(items: list, top: float, H: float, x0: float, Wc: float, out: dict, g_cap: float = 0.07,
+          min_gap: float = 0.012) -> bool:
     """Place blocks top to bottom in a column: spare height becomes gaps (capped), then outer margins."""
     n = len(items)
     free = H - sum(i["h"] for i in items)
-    if free < max(4.0, 0.012 * H) * (n - 1) - 0.5:
+    if free < max(4.0, min_gap * H) * (n - 1) - 0.5:
         return False
     g = min(free / (n - 1), g_cap * H) if n > 1 else 0.0
     y = top + (free - g * max(n - 1, 0)) / 2
@@ -424,14 +461,7 @@ def _finish(design: Design, TW: float, TH: float, out: dict, pad: float, strip_h
         e = copy.deepcopy(el)
         e.update(font_size=size, x=pad, y=edge - m["height"], width=wfp, height=m["height"])
         out[e["id"]] = e
-    sw, sh = design.canvas["width"], design.canvas["height"]
-    for u in by("decoration"):
-        k = min(1.0, TW / sw, 0.9 * min(TW, TH) / max(u.w, u.h, 1e-6))
-        els = _xform(u, k, (u.bbox[0] + u.bbox[2]) / 2 / sw * TW, (u.bbox[1] + u.bbox[3]) / 2 / sh * TH)
-        x0, y0, x1, y1 = _extent(els)
-        _shift(els, -min(0, x0) - max(0, x1 - TW), -min(0, y0) - max(0, y1 - TH))
-        for e in els:
-            out[e["id"]] = e
+    _decorate(design, TW, TH, out)
     for u in by("bg"):
         e = copy.deepcopy(u.members[0])
         e.update(x=0.0, y=0.0, width=float(TW), height=float(TH), fit="cover")
@@ -457,11 +487,12 @@ def layout_stack(design: Design, TW: float, TH: float, P: dict):
     if Wc < 40 or H < 60:
         return None
     parts = {"logo", "product", "text", "badges", "cta", "odd"} | (set() if P.get("rc") else {"ribbon"})
+    P = dict(P, hcap_abs=min(P.get("hcap_abs", 1e9), _head_cap(design, TW, TH)))
     col = _column(design, Wc, H, P, parts)
     if col is None or not col[0]:
         return None
     out: dict[str, dict] = {}
-    if not _flow(col[0], top, H, pad, Wc, out, P.get("gcap", 0.07)):
+    if not _flow(col[0], top, H, pad, Wc, out, P.get("gcap", 0.07), P.get("need_gap", 0.012)):
         return None
     if P.get("rc"):
         for u in design.by_role("ribbon"):
@@ -484,12 +515,14 @@ def layout_split(design: Design, TW: float, TH: float, P: dict):
     top, H, strip_h, edge = _band(design, TW, TH, pad)
     if Wm < 40 or Wt < 80 or H < 60:
         return None
+    P = dict(P, hcap_abs=min(P.get("hcap_abs", 1e9), _head_cap(design, TW, TH)))
     left = _column(design, Wm, H, P, {"logo", "product"})
     right = _column(design, Wt, H, P, {"ribbon", "text", "badges", "cta", "odd"})
     if left is None or right is None or not left[0] or not right[0]:
         return None
     out: dict[str, dict] = {}
-    if not (_flow(left[0], top, H, pad, Wm, out) and _flow(right[0], top, H, pad + Wm + gap, Wt, out)):
+    if not (_flow(left[0], top, H, pad, Wm, out, 0.07, P.get("need_gap", 0.012))
+            and _flow(right[0], top, H, pad + Wm + gap, Wt, out, 0.07, P.get("need_gap", 0.012))):
         return None
     _finish(design, TW, TH, out, pad, strip_h, edge, right[1])
     return out
@@ -497,12 +530,12 @@ def layout_split(design: Design, TW: float, TH: float, P: dict):
 
 STACK_PARAMS = [
     {"logo": 0.45, "prod": pf, "hcap": hc, "cta": ct, "gcap": gc, "rc": rc}
-    for pf in (0.25, 0.35, 0.45, 0.55) for hc in (0.05, 0.08, 0.13, 0.2) for ct in (0.05, 0.07)
+    for pf in (0.3, 0.42, 0.55, 0.68) for hc in (0.05, 0.08, 0.13, 0.2) for ct in (0.06, 0.09)
     for gc in (0.07, 0.18) for rc in (False, True)
 ]
 SPLIT_PARAMS = [
     {"mw": mw, "logo": 0.7, "logo_h": 0.18, "prod": pf, "hcap": hc, "cta": ct}
-    for mw in (0.38, 0.46) for pf in (0.55, 0.72, 0.9) for hc in (0.05, 0.08, 0.12) for ct in (0.08, 0.12)
+    for mw in (0.38, 0.46) for pf in (0.6, 0.8, 1.0) for hc in (0.05, 0.08, 0.12) for ct in (0.1, 0.15)
 ]
 
 
@@ -527,3 +560,62 @@ def layout_spread(design: Design, TW: float, TH: float, P: dict):
 
 
 SPREAD_PARAMS = [{}]
+
+
+# ---------- grow-to-fit: the biggest product / button / text that still works ----------
+
+def _grow(fn, design: Design, TW: float, TH: float, P: dict):
+    """Binary-search a common growth factor s for product, button, logo and headline cap.
+
+    A layout is accepted if it builds, the headline stays at least P["hmin"] x min(TW, TH) and the gaps
+    stay at least P["need_gap"] x height. The largest accepted s wins.
+    """
+    head = design.first("headline")
+    base = min(TW, TH)
+
+    def make(s):
+        Q = dict(P)
+        Q["prod"], Q["hcap"], Q["cta"] = P["prod"] * s, P["hcap"] * s, P["cta"] * s
+        Q["logo"] = min(P["logo"] * s ** 0.5, 0.9)
+        Q["hcap_abs"] = 0.075 * (TW * TH) ** 0.5  # a headline never balloons past ~1.5x its original relative size
+        return fn(design, TW, TH, Q)
+
+    def ok(out):
+        if not out:
+            return False
+        if head is not None:
+            e = out.get(head.members[0]["id"])
+            if e is not None and e["font_size"] < P["hmin"] * base:
+                return False
+        return True
+
+    lo, hi = 0.4, 2.5
+    best = make(lo)
+    if not ok(best):
+        return None
+    for _ in range(9):
+        mid = (lo + hi) / 2
+        o = make(mid)
+        if ok(o):
+            lo, best = mid, o
+        else:
+            hi = mid
+    return best
+
+
+def layout_stack_grow(design, TW, TH, P):
+    return _grow(layout_stack, design, TW, TH, P)
+
+
+def layout_split_grow(design, TW, TH, P):
+    return _grow(layout_split, design, TW, TH, P)
+
+
+GROW_STACK_PARAMS = [
+    {"logo": 0.45, "prod": 0.3, "hcap": 0.1, "cta": 0.07, "gcap": 0.18, "rc": rc, "hmin": hm, "need_gap": ng}
+    for hm in (0.04, 0.055, 0.07) for ng in (0.02, 0.04) for rc in (False, True)
+]
+GROW_SPLIT_PARAMS = [
+    {"mw": mw, "logo": 0.7, "logo_h": 0.18, "prod": 0.7, "hcap": 0.08, "cta": 0.1, "hmin": hm, "need_gap": ng}
+    for mw in (0.38, 0.46) for hm in (0.04, 0.055, 0.07) for ng in (0.02, 0.04)
+]

@@ -46,8 +46,9 @@ LOGO_OK = 0.45  # logo term at or above this counts as a clearly visible logo (a
 
 def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
     """All candidate layouts as (name, output). Index 0 is always the safety net."""
-    from engine.layout import (ROW_PARAMS, SPLIT_PARAMS, SPREAD_PARAMS, STACK_PARAMS, layout_row,
-                               layout_split, layout_spread, layout_stack)
+    from engine.layout import (GROW_SPLIT_PARAMS, GROW_STACK_PARAMS, ROW_PARAMS, SPLIT_PARAMS, SPREAD_PARAMS,
+                               STACK_PARAMS, layout_row, layout_split, layout_split_grow, layout_spread,
+                               layout_stack, layout_stack_grow)
     from engine.understand import understand
 
     tw, th = target_canvas["width"], target_canvas["height"]
@@ -60,8 +61,10 @@ def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
         templates.append((layout_row, ROW_PARAMS))
     if tw / th <= 1.6:
         templates.append((layout_stack, STACK_PARAMS))
+        templates.append((layout_stack_grow, GROW_STACK_PARAMS))
     if 1.0 <= tw / th <= 3.0:
         templates.append((layout_split, SPLIT_PARAMS))
+        templates.append((layout_split_grow, GROW_SPLIT_PARAMS))
     ids = {e["id"] for e in source["elements"]}
     for fn, params in templates:
         for pi, P in enumerate(params):

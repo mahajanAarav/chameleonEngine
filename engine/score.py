@@ -15,7 +15,12 @@ from engine.understand import understand
 # leave-one-out agreement 83% (the old weights agreed 46% on the same pairs). "fill" alone predicted 88%.
 WEIGHTS = {"overlap": 0.03, "readability": 0.07, "hierarchy": 0.07, "margin": 0.04, "coverage": 0.095,
            "logo": 0.04, "cta": 0.095, "headline": 0.055, "product": 0.08,
-           "prod_size": 0.105, "cta_size": 0.19, "head_size": 0.045, "fill": 0.06, "deco_clash": 0.03}
+           "prod_size": 0.105, "cta_size": 0.19, "head_size": 0.045, "fill": 0.06, "deco_clash": 0.03, "wrap": 0.03}
+
+
+def _tent(r: float, peak: float) -> float:
+    """Rises to `peak` (a designer-like size), then falls: bigger is better only up to a point."""
+    return r if r <= peak else max(0.0, peak - 2.0 * (r - peak))
 
 
 def _clamp(v: float) -> float:
@@ -143,13 +148,13 @@ def metrics(source: dict, output: dict) -> dict:
                       max(b[3] for b in boxes))) / (cw * ch)
 
     pf, cf = frac("product"), frac(cta_role)
-    prod_size = 1.0 if pf is None else min(1.5, math.sqrt(pf) / 0.5)
-    cta_size = 1.0 if cf is None else min(1.5, math.sqrt(cf) / 0.25)
+    prod_size = 1.0 if pf is None else _tent(math.sqrt(pf) / 0.5, 1.2)
+    cta_size = 1.0 if cf is None else _tent(math.sqrt(cf) / 0.25, 1.4)
     head_size = 1.0
     if heads and heads[0].members[0]["id"] in out_by_id:
-        head_size = min(1.5, out_by_id[heads[0].members[0]["id"]]["font_size"] / min(cw, ch) / 0.08)
+        head_size = _tent(out_by_id[heads[0].members[0]["id"]]["font_size"] / min(cw, ch) / 0.08, 1.5)
     body = [r for e, r in content if src.get(e["id"], e).get("opacity", 1) >= 0.7]
-    fill = min(1.5, math.sqrt(sum(_area(r) for r in body) / (cw * ch)) / 0.6)
+    fill = _tent(math.sqrt(sum(_area(r) for r in body) / (cw * ch)) / 0.6, 1.45)
     deco_ids = {m["id"] for u in design.by_role("decoration") for m in u.members}
     clash = 0.0
     for did in deco_ids:
@@ -160,10 +165,20 @@ def metrics(source: dict, output: dict) -> dict:
             if _area(r) > 0 and e["type"] in ("text", "image"):
                 clash += _inter(dr, r) / _area(r)
     deco_clash = math.exp(-3 * clash)
+    # widows: a wrapped text whose last line is a short orphan looks accidental
+    widows = 0
+    for e, _ in content:
+        if e["type"] == "text" and len(str(e.get("content", "")).split()) >= 3:
+            m = measure_text(e)
+            if m["n_lines"] >= 2:
+                last = m["lines"][-1]
+                lw = measure_text(dict(e, content=last), None, 1e9)["max_line_width"]
+                widows += lw < 0.3 * m["max_line_width"]
+    wrap = math.exp(-1.2 * widows)
     terms = {"overlap": overlap, "readability": readability, "hierarchy": hierarchy, "margin": margin,
              "coverage": coverage, "logo": _clamp(rel_area("logo") / 0.6),
              "cta": _clamp(rel_area(cta_role) / 0.5), "headline": _clamp(head_rel / 0.7),
              "product": _clamp(rel_area("product") / 0.6), "prod_size": prod_size, "cta_size": cta_size,
-             "head_size": head_size, "fill": fill, "deco_clash": deco_clash}
+             "head_size": head_size, "fill": fill, "deco_clash": deco_clash, "wrap": wrap}
     score = 0.0 if errors else 100 * sum(WEIGHTS[k] * v for k, v in terms.items())
     return {"score": score, "errors": errors, "warns": [m for s, m in probs if s == "warn"], **terms}
