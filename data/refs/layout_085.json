@@ -1,0 +1,150 @@
+{
+ "canvas": {
+  "width": 160,
+  "height": 600
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 160,
+   "height": 600,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 12,
+   "y": 10,
+   "width": 136,
+   "height": 42.3,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "product",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 10.0,
+   "y": 104,
+   "width": 140,
+   "height": 140.0,
+   "fit": "contain",
+   "z_index": 3
+  },
+  {
+   "id": "headline",
+   "type": "text",
+   "x": 12,
+   "y": 260.0,
+   "width": 136,
+   "height": 168.0,
+   "z_index": 5,
+   "content": "Introducing the All-New Limited-Batch Solstice Chase the Light Botanical Sparkling Collection \u2014 Crafted Exclusively for Golden Hour Gatherings",
+   "font_family": "Solstice Serif",
+   "font_size": 14,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "style_runs": [
+    {
+     "start": 6,
+     "end": 16,
+     "color": "rgba(240,178,66,1)"
+    }
+   ]
+  },
+  {
+   "id": "cta_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 12,
+   "y": 450.0,
+   "width": 136,
+   "height": 56,
+   "fill_color": "rgba(232,106,58,1)",
+   "corner_radius": 28.0,
+   "z_index": 3,
+   "group_id": "cta"
+  },
+  {
+   "id": "cta_label",
+   "type": "text",
+   "x": 12,
+   "y": 459.5,
+   "width": 136,
+   "height": 33.6,
+   "z_index": 5,
+   "content": "Shop the Summer Line",
+   "font_family": "Solstice Sans",
+   "font_size": 14,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "group_id": "cta"
+  },
+  {
+   "id": "deco_circle_1",
+   "type": "shape",
+   "shape_type": "ellipse",
+   "x": 0,
+   "y": 0,
+   "width": 120,
+   "height": 120,
+   "fill_color": "rgba(255,255,255,1)",
+   "opacity": 0.15,
+   "z_index": 1
+  },
+  {
+   "id": "ribbon_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 16.0,
+   "y": 68.0,
+   "width": 128,
+   "height": 28,
+   "fill_color": "rgba(220,60,50,1)",
+   "corner_radius": 5.0,
+   "rotation": -8,
+   "z_index": 4,
+   "group_id": "ribbon"
+  },
+  {
+   "id": "ribbon_label",
+   "type": "text",
+   "x": 16.0,
+   "y": 73.4,
+   "width": 128,
+   "height": 14.4,
+   "z_index": 6,
+   "content": "SUNSET SALE",
+   "font_family": "Solstice Sans",
+   "font_size": 12,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "rotation": -8,
+   "group_id": "ribbon"
+  },
+  {
+   "id": "legal_text",
+   "type": "text",
+   "x": 12,
+   "y": 518.0,
+   "width": 136,
+   "height": 72.0,
+   "z_index": 6,
+   "content": "Please drink responsibly. Botanical Sparkling Co., 2026. Void where prohibited. See solstice.com/terms for full details.",
+   "font_family": "Solstice Sans",
+   "font_size": 10,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.6)",
+   "text_align": "center"
+  }
+ ]
+}

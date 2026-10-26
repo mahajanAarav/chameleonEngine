@@ -1,0 +1,82 @@
+{
+ "canvas": {
+  "width": 300,
+  "height": 600
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 300,
+   "height": 600,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 60.0,
+   "y": 96,
+   "width": 180,
+   "height": 60.19,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "headline",
+   "type": "text",
+   "x": 20,
+   "y": 200,
+   "width": 260,
+   "height": 96.0,
+   "z_index": 5,
+   "content": "Golden Hour in a Bottle",
+   "font_family": "Solstice Serif",
+   "font_size": 40,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "style_runs": [
+    {
+     "start": 6,
+     "end": 16,
+     "color": "rgba(240,178,66,1)"
+    }
+   ]
+  },
+  {
+   "id": "cta",
+   "type": "text",
+   "x": 20,
+   "y": 316.0,
+   "width": 260,
+   "height": 26.4,
+   "z_index": 5,
+   "content": "Get Yours Today",
+   "font_family": "Solstice Sans",
+   "font_size": 22,
+   "font_weight": "bold",
+   "color": "rgba(232,106,58,1)",
+   "text_align": "center"
+  },
+  {
+   "id": "legal_text",
+   "type": "text",
+   "x": 16,
+   "y": 540.0,
+   "width": 268,
+   "height": 36.0,
+   "z_index": 6,
+   "content": "Please drink responsibly. Botanical Sparkling Co., 2026. Void where prohibited. See solstice.com/terms for full details.",
+   "font_family": "Solstice Sans",
+   "font_size": 10,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.6)",
+   "text_align": "center"
+  }
+ ]
+}

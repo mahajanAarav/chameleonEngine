@@ -1,0 +1,93 @@
+{
+ "canvas": {
+  "width": 851,
+  "height": 315
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 851,
+   "height": 315,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 460.5,
+   "y": 58.6,
+   "width": 225,
+   "height": 75.0,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "product",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 30,
+   "y": 30.0,
+   "width": 255,
+   "height": 255.0,
+   "fit": "contain",
+   "z_index": 3
+  },
+  {
+   "id": "headline",
+   "type": "text",
+   "x": 325,
+   "y": 133.6,
+   "width": 496,
+   "height": 48.0,
+   "z_index": 5,
+   "content": "Golden Hour in a Bottle",
+   "font_family": "Solstice Serif",
+   "font_size": 40,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "style_runs": [
+    {
+     "start": 6,
+     "end": 16,
+     "color": "rgba(240,178,66,1)"
+    }
+   ]
+  },
+  {
+   "id": "subhead",
+   "type": "text",
+   "x": 325,
+   "y": 191.6,
+   "width": 496,
+   "height": 20.4,
+   "z_index": 5,
+   "content": "Botanical sparkling infusions, crafted for golden hour.",
+   "font_family": "Solstice Sans",
+   "font_size": 17,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.85)",
+   "text_align": "center"
+  },
+  {
+   "id": "cta",
+   "type": "text",
+   "x": 325,
+   "y": 230.0,
+   "width": 496,
+   "height": 26.4,
+   "z_index": 5,
+   "content": "Discover More",
+   "font_family": "Solstice Sans",
+   "font_size": 22,
+   "font_weight": "bold",
+   "color": "rgba(232,106,58,1)",
+   "text_align": "center"
+  }
+ ]
+}
