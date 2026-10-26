@@ -6,6 +6,7 @@ and their interaction. If the file is missing the engine silently falls back to 
 """
 
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -26,6 +27,7 @@ class Picker:
         self.sd = np.array(cfg["sd"])
         self.w = np.array(cfg["w"])
         self.templates = cfg["templates"]
+        self.targets = cfg.get("targets")
 
     @classmethod
     def load(cls):
@@ -37,6 +39,11 @@ class Picker:
     def predict(self, m: dict, name: str, w: float, h: float) -> float:
         x = (np.array([m[k] for k in self.names]) - self.mu) / self.sd
         T = len(self.templates)
+        b = bucket(w, h)
+        dev = np.zeros(2)
+        if self.targets:
+            dev = np.array([abs(math.log(max(m["head_raw"], 1e-3) / self.targets["head"][b])),
+                            abs(math.log(max(m["prod_raw"], 1e-3) / self.targets["prod"][b]))])
         base = name.split("#")[0]
         t = np.zeros(T)
         inter = np.zeros(BUCKETS * T)
@@ -44,4 +51,4 @@ class Picker:
             i = self.templates.index(base)
             t[i] = 1.0
             inter[bucket(w, h) * T + i] = 1.0
-        return float(np.concatenate([x, t, inter]) @ self.w)
+        return float(np.concatenate([x, dev, t, inter]) @ self.w)

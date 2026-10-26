@@ -150,6 +150,10 @@ def metrics(source: dict, output: dict) -> dict:
     pf, cf = frac("product"), frac(cta_role)
     prod_size = 1.0 if pf is None else _tent(math.sqrt(pf) / 0.5, 1.2)
     cta_size = 1.0 if cf is None else _tent(math.sqrt(cf) / 0.25, 1.4)
+    prod_raw = 1.0 if pf is None else math.sqrt(pf) / 0.5  # uncapped sizes for the learned picker
+    head_raw = 1.0
+    if heads and heads[0].members[0]["id"] in out_by_id:
+        head_raw = out_by_id[heads[0].members[0]["id"]]["font_size"] / min(cw, ch) / 0.08
     head_size = 1.0
     if heads and heads[0].members[0]["id"] in out_by_id:
         head_size = _tent(out_by_id[heads[0].members[0]["id"]]["font_size"] / min(cw, ch) / 0.08, 1.5)
@@ -223,6 +227,7 @@ def metrics(source: dict, output: dict) -> dict:
              "product": _clamp(rel_area("product") / 0.6), "prod_size": prod_size, "cta_size": cta_size,
              "head_size": head_size, "fill": fill, "deco_clash": deco_clash, "wrap": wrap,
              "logo_cy": logo_cy, "logo_cx_off": logo_cx_off, "prod_cx_off": prod_cx_off, "prod_cy_off": prod_cy_off,
-             "cent_dx": cent_dx, "cent_dy": cent_dy, "min_gap": min_gap, "head_lines": head_lines, "order": order}
+             "cent_dx": cent_dx, "cent_dy": cent_dy, "min_gap": min_gap, "head_lines": head_lines, "order": order,
+             "prod_raw": prod_raw, "head_raw": head_raw}
     score = 0.0 if errors else 100 * sum(WEIGHTS[k] * terms[k] for k in WEIGHTS)
     return {"score": score, "errors": errors, "warns": [m for s, m in probs if s == "warn"], **terms}

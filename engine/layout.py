@@ -55,7 +55,10 @@ def _head_cap(design: Design, TW: float, TH: float) -> float:
     if h is None:
         return 1e9
     sw, sh = design.canvas["width"], design.canvas["height"]
-    return 1.6 * h.members[0]["font_size"] * (TW * TH / (sw * sh)) ** 0.5
+    cap = 1.6 * h.members[0]["font_size"] * (TW * TH / (sw * sh)) ** 0.5
+    if TW / TH >= 2.2:  # short, wide banners: designers set the headline against the height (up to ~22% of it)
+        cap = max(cap, 0.22 * TH)
+    return cap
 
 
 def _ratio(unit, el, head):
@@ -102,6 +105,19 @@ def _col(els):
     return {"w": x1 - x0, "h": y1 - y0, "els": els}
 
 
+def _scale_col(c, k):
+    """Shrink a column uniformly by k (positions, sizes, fonts, corner radii)."""
+    for e in c["els"]:
+        for key in ("x", "y", "width", "height"):
+            e[key] *= k
+        if e["type"] == "text":
+            e["font_size"] = max(1, int(round(e["font_size"] * k)))
+        if e["type"] == "shape" and "corner_radius" in e:
+            e["corner_radius"] *= k
+    c["w"] *= k
+    c["h"] *= k
+
+
 def _shift(els, dx, dy):
     for e in els:
         e["x"] += dx
@@ -146,8 +162,8 @@ def _decorate(design: Design, TW: float, TH: float, out: dict, k_cap: float = 1.
 
 def layout_row(design: Design, TW: float, TH: float, P: dict):
     by = design.by_role
-    pad = max(3.0, round(0.08 * TH))
-    gap = max(4.0, round(0.03 * TW))
+    pad = max(2.0, round(0.08 * TH * P.get("pad", 1.0)))
+    gap = max(4.0, round(0.03 * TW * P.get("pad", 1.0)))
     out: dict[str, dict] = {}
 
     fine, wms = by("fine_print"), by("watermark")
@@ -164,8 +180,11 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
         e = _image(u, ch * P["logo"], 0.25 * TW * P.get("wcap", 1.0))
         cols.append(_col([e]))
     for u in by("product") + by("image"):
-        e = _image(u, ch * P["prod"], 0.3 * TW * P.get("wcap", 1.0))
-        cols.append(_col([e]))
+        full = bool(P.get("fullh")) and u.role == "product"
+        e = _image(u, ((TH - 2 * pad) if full else ch) * P["prod"], 0.3 * TW * P.get("wcap", 1.0))
+        c = _col([e])
+        c["full"] = full
+        cols.append(c)
 
     # badges: stacked column, or a row inside the text column
     badges = sorted(by("badge"), key=lambda u: u.order)
@@ -223,6 +242,12 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
         for u in by("supporting") + by("text") + by("cta_text"):
             items.append((u.members[0], 1.0))
     n_cols = len(cols) + (1 if items else 0)
+    if items and P.get("tfrac") and cols:
+        room = avail - P["tfrac"] * avail - gap * (n_cols - 1)  # width the other columns may keep
+        have = sum(c["w"] for c in cols)
+        if have > room > 0:
+            for c in cols:
+                _scale_col(c, max(0.35, room / have))
     fine_cap = None  # fine print must stay smaller than the smallest body text
     fixed_w = sum(c["w"] for c in cols) + gap * (n_cols - 1)
     Wt = avail - fixed_w
@@ -279,8 +304,13 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
     extra = avail - natural
     extra_gap = min(extra / (len(cols) - 1), 0.1 * TW) if len(cols) > 1 else 0.0
     x = pad + (avail - natural - extra_gap * max(len(cols) - 1, 0)) / 2
+    full_right = 0.0
     for c in cols:
-        _shift(c["els"], x, top + (ch - c["h"]) / 2)
+        if c.get("full"):
+            _shift(c["els"], x, pad + (TH - 2 * pad - c["h"]) / 2)
+            full_right = max(full_right, x + c["w"])
+        else:
+            _shift(c["els"], x, top + (ch - c["h"]) / 2)
         x += c["w"] + gap + extra_gap
         for e in c["els"]:
             out[e["id"]] = e
@@ -294,11 +324,14 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
         out[e["id"]] = e
     for u in fine:
         el = u.members[0]
-        wfp = avail - wm_w
+        fx = full_right + gap if full_right else pad
+        wfp = TW - pad - fx - wm_w
+        if wfp < 40:
+            return None
         cap = strip_h / 1.2 if fine_cap is None else min(strip_h / 1.2, fine_cap)
         size, m, ok = fit_size(el, wfp, strip_h, max_size=cap, min_size=3)
         e = copy.deepcopy(el)
-        e.update(font_size=size, x=pad, y=TH - pad - strip_h + (strip_h - m["height"]) / 2, width=wfp,
+        e.update(font_size=size, x=fx, y=TH - pad - strip_h + (strip_h - m["height"]) / 2, width=wfp,
                  height=m["height"])
         out[e["id"]] = e
 
@@ -312,6 +345,11 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
     return out
 
 
+ROW_TIGHT_PARAMS = [
+    {"logo": lg, "prod": 1.0, "cta": ct, "badges": bm, "wcap": 1.0, "tfrac": tf, "pad": pd, "fullh": fh}
+    for lg in (0.5, 0.3) for ct in (0.38, 0.28) for bm in ("col", "row") for tf in (0.45, 0.58)
+    for pd in (1.0, 0.5) for fh in (False, True)
+]
 ROW_PARAMS = [
     {"logo": lg, "prod": pr, "cta": ct, "badges": bm, "wcap": wc}
     for lg in (0.75, 0.5, 0.3) for pr in (1.0, 0.7) for ct in (0.5, 0.38, 0.28) for bm in ("col", "row")
@@ -366,7 +404,7 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
             items.append(_col(_xform(u, k, 0, 0)))
     if "product" in parts:
         for u in by("product") + by("image"):
-            items.append(_col([_image(u, P["prod"] * H, 0.85 * Wc)]))
+            items.append(_col([_image(u, P["prod"] * H, P.get("pw", 0.85) * Wc)]))
 
     text_at, texts_src = None, []
     if "text" in parts:
@@ -481,7 +519,7 @@ def _band(design: Design, TW: float, TH: float, pad: float):
 
 
 def layout_stack(design: Design, TW: float, TH: float, P: dict):
-    pad = max(6.0, round(0.06 * min(TW, TH)))
+    pad = max(4.0, round(0.06 * min(TW, TH) * P.get("pad", 1.0)))
     Wc = TW - 2 * pad
     top, H, strip_h, edge = _band(design, TW, TH, pad)
     if Wc < 40 or H < 60:
@@ -507,8 +545,8 @@ def layout_stack(design: Design, TW: float, TH: float, P: dict):
 
 
 def layout_split(design: Design, TW: float, TH: float, P: dict):
-    pad = max(6.0, round(0.05 * min(TW, TH)))
-    gap = max(8.0, 0.04 * TW)
+    pad = max(4.0, round(0.05 * min(TW, TH) * P.get("pad", 1.0)))
+    gap = max(6.0, 0.04 * TW * P.get("pad", 1.0))
     avail = TW - 2 * pad
     Wm = P["mw"] * (avail - gap)
     Wt = avail - gap - Wm
@@ -532,6 +570,14 @@ STACK_PARAMS = [
     {"logo": 0.45, "prod": pf, "hcap": hc, "cta": ct, "gcap": gc, "rc": rc}
     for pf in (0.3, 0.42, 0.55, 0.68) for hc in (0.05, 0.08, 0.13, 0.2) for ct in (0.06, 0.09)
     for gc in (0.07, 0.18) for rc in (False, True)
+]
+SPLIT_WIDE_PARAMS = [
+    {"mw": mw, "logo": 0.7, "logo_h": 0.18, "prod": pf, "hcap": hc, "cta": 0.1, "pad": pd, "pw": 0.97}
+    for mw in (0.5, 0.58, 0.66) for pf in (0.9, 1.0) for hc in (0.08, 0.12) for pd in (1.0, 0.5)
+]
+STACK_TIGHT_PARAMS = [
+    {"logo": 0.45, "prod": pf, "hcap": hc, "cta": 0.07, "gcap": 0.07, "rc": False, "pad": 0.5, "pw": pw}
+    for pf in (0.45, 0.55, 0.68) for hc in (0.08, 0.13, 0.2) for pw in (0.85, 1.0)
 ]
 SPLIT_PARAMS = [
     {"mw": mw, "logo": 0.7, "logo_h": 0.18, "prod": pf, "hcap": hc, "cta": ct}

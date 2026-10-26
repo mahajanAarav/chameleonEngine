@@ -33,21 +33,45 @@ def template_of(name):
     return TEMPLATES.index(base) if base in TEMPLATES else 0
 
 
-def expand(x_std, name, b):
-    """Score terms + template one-hot + bucket x template interaction."""
+def size_dev(head_raw, prod_raw, targets, b):
+    """How far a candidate's headline and product sizes are from what designers use for this target shape."""
+    import math
+    return np.array([abs(math.log(max(head_raw, 1e-3) / targets["head"][b])),
+                     abs(math.log(max(prod_raw, 1e-3) / targets["prod"][b]))])
+
+
+def expand(x_std, name, b, dev):
+    """Score terms + size deviations + template one-hot + bucket x template interaction."""
     t = np.zeros(len(TEMPLATES))
     t[template_of(name)] = 1.0
     inter = np.zeros(len(BUCKETS) * len(TEMPLATES))
     inter[b * len(TEMPLATES) + template_of(name)] = 1.0
-    return np.concatenate([x_std, t, inter])
+    return np.concatenate([x_std, dev, t, inter])
 
 
-def build(tasks, names, mu, sd):
+def learn_targets(tasks, names):
+    """Median designer headline / product size per target shape (uncapped, relative to min canvas side)."""
+    import collections
+    from engine.score import metrics
+    ih, ip = names.index("head_raw"), names.index("prod_raw")
+    acc = collections.defaultdict(lambda: ([], []))
+    for _, t, ref in tasks:
+        m = metrics(t["source"], ref)
+        b = bucket(t["target"]["width"], t["target"]["height"])
+        acc[b][0].append(m["head_raw"])
+        acc[b][1].append(m["prod_raw"])
+    return {"head": [statistics.median(acc[b][0]) if acc[b][0] else 1.0 for b in range(len(BUCKETS))],
+            "prod": [statistics.median(acc[b][1]) if acc[b][1] else 1.0 for b in range(len(BUCKETS))]}
+
+
+def build(tasks, names, mu, sd, targets):
     rows = []
+    ih, ip = names.index("head_raw"), names.index("prod_raw")
     for _, t, ref in tasks:
         r, _ = featurise(t, ref, names)
         b = bucket(t["target"]["width"], t["target"]["height"])
-        X = np.array([expand((c["x"] - mu) / sd, c["name"], b) for c in r["cands"]])
+        X = np.array([expand((c["x"] - mu) / sd, c["name"], b, size_dev(c["x"][ih], c["x"][ip], targets, b))
+                      for c in r["cands"]])
         y = np.array([c["dist"] for c in r["cands"]])
         rows.append({"X": X, "y": y, "gate": [c["gate"] for c in r["cands"]], "names": [c["name"] for c in r["cands"]],
                      "split": t["split"]})
@@ -84,7 +108,9 @@ def main():
     first = [featurise(t, ref, names)[0] for _, t, ref in tr]
     allx = np.array([c["x"] for r in first for c in r["cands"]])
     mu, sd = allx.mean(axis=0), allx.std(axis=0) + 1e-6
-    rows, held = build(tr, names, mu, sd), build(ho, names, mu, sd)
+    targets = learn_targets(tr, names)
+    print('designer-typical sizes per shape', {k: [round(x, 2) for x in v] for k, v in targets.items()})
+    rows, held = build(tr, names, mu, sd, targets), build(ho, names, mu, sd, targets)
     print(f"{len(rows)} train tasks, {len(held)} held-out tasks, {sum(len(r['y']) for r in rows)} candidate layouts, "
           f"{rows[0]['X'].shape[1]} inputs")
 
@@ -106,7 +132,8 @@ def main():
     ev = evaluate(held, w, cur)
     print("held-out tasks (never trained on):   " + "  ".join(f"{k} {v:.1f}" for k, v in ev.items()))
     if a.save:
-        json.dump({"names": names, "mu": mu.tolist(), "sd": sd.tolist(), "w": w.tolist(), "templates": TEMPLATES},
+        json.dump({"names": names, "mu": mu.tolist(), "sd": sd.tolist(), "w": w.tolist(), "templates": TEMPLATES,
+                   "targets": targets},
                   open("engine/regressor.json", "w"))
         print("saved engine/regressor.json")
 
