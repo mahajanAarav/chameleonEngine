@@ -1,0 +1,160 @@
+{
+ "case": "s25->Instagram Post",
+ "split": "heldout",
+ "source": {
+  "canvas": {
+   "width": 1200,
+   "height": 628
+  },
+  "elements": [
+   {
+    "id": "bg",
+    "type": "image",
+    "asset_id": "solstice_bg_gradient.png",
+    "x": 0,
+    "y": 0,
+    "width": 1200,
+    "height": 628,
+    "fit": "cover",
+    "z_index": 0
+   },
+   {
+    "id": "logo",
+    "type": "image",
+    "asset_id": "solstice_logo_lockup.png",
+    "x": 219,
+    "y": 29,
+    "width": 186,
+    "height": 62,
+    "fit": "contain",
+    "z_index": 5
+   },
+   {
+    "id": "product",
+    "type": "image",
+    "asset_id": "solstice_bottle.png",
+    "x": 72,
+    "y": 103,
+    "width": 480,
+    "height": 480,
+    "fit": "contain",
+    "z_index": 3
+   },
+   {
+    "id": "headline",
+    "type": "text",
+    "x": 624,
+    "y": 197,
+    "width": 528,
+    "height": 122.4,
+    "z_index": 5,
+    "content": "New Season, New Sparkle: Meet the Botanical Infusions Everyone Is Talking About",
+    "font_family": "Solstice Serif",
+    "font_size": 34,
+    "font_weight": "bold",
+    "color": "rgba(255,255,255,1)",
+    "text_align": "center",
+    "style_runs": [
+     {
+      "start": 6,
+      "end": 16,
+      "color": "rgba(240,178,66,1)"
+     }
+    ]
+   },
+   {
+    "id": "badge1_bg",
+    "type": "shape",
+    "shape_type": "rectangle",
+    "x": 844,
+    "y": 333,
+    "width": 87,
+    "height": 29,
+    "fill_color": "rgba(43,27,46,1)",
+    "corner_radius": 14.5,
+    "z_index": 3,
+    "group_id": "badge1"
+   },
+   {
+    "id": "badge1_label",
+    "type": "text",
+    "x": 844,
+    "y": 341,
+    "width": 87,
+    "height": 9.6,
+    "z_index": 5,
+    "content": "NEW FLAVOR",
+    "font_family": "Solstice Sans",
+    "font_size": 8,
+    "font_weight": "bold",
+    "color": "rgba(255,255,255,1)",
+    "text_align": "center",
+    "group_id": "badge1"
+   },
+   {
+    "id": "cta_bg",
+    "type": "shape",
+    "shape_type": "rectangle",
+    "x": 788,
+    "y": 380,
+    "width": 200,
+    "height": 52,
+    "fill_color": "rgba(232,106,58,1)",
+    "corner_radius": 26.0,
+    "z_index": 3,
+    "group_id": "cta"
+   },
+   {
+    "id": "cta_label",
+    "type": "text",
+    "x": 788,
+    "y": 396,
+    "width": 200,
+    "height": 14.4,
+    "z_index": 5,
+    "content": "Shop the Summer Line",
+    "font_family": "Solstice Sans",
+    "font_size": 12,
+    "font_weight": "bold",
+    "color": "rgba(255,255,255,1)",
+    "text_align": "center",
+    "group_id": "cta"
+   },
+   {
+    "id": "ribbon_bg",
+    "type": "shape",
+    "shape_type": "rectangle",
+    "x": 1003,
+    "y": 17,
+    "width": 174,
+    "height": 31,
+    "fill_color": "rgba(220,60,50,1)",
+    "corner_radius": 3.488888888888889,
+    "rotation": -8,
+    "z_index": 4,
+    "group_id": "ribbon"
+   },
+   {
+    "id": "ribbon_label",
+    "type": "text",
+    "x": 1003,
+    "y": 24,
+    "width": 174,
+    "height": 13.2,
+    "z_index": 6,
+    "content": "SUNSET SALE",
+    "font_family": "Solstice Sans",
+    "font_size": 11,
+    "font_weight": "bold",
+    "color": "rgba(255,255,255,1)",
+    "text_align": "center",
+    "rotation": -8,
+    "group_id": "ribbon"
+   }
+  ]
+ },
+ "target": {
+  "width": 1080,
+  "height": 1080
+ }
+}

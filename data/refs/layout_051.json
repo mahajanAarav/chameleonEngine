@@ -1,0 +1,148 @@
+{
+ "canvas": {
+  "width": 1754,
+  "height": 1240
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 1754,
+   "height": 1240,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 1115.0,
+   "y": 130,
+   "width": 320,
+   "height": 99.0,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "product",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 100,
+   "y": 330.0,
+   "width": 580,
+   "height": 580,
+   "fit": "contain",
+   "z_index": 3
+  },
+  {
+   "id": "headline",
+   "type": "text",
+   "x": 870,
+   "y": 363.6,
+   "width": 810,
+   "height": 98.4,
+   "z_index": 5,
+   "content": "Summer Starts Here",
+   "font_family": "Solstice Serif",
+   "font_size": 82,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "style_runs": [
+    {
+     "start": 6,
+     "end": 16,
+     "color": "rgba(240,178,66,1)"
+    }
+   ]
+  },
+  {
+   "id": "subhead",
+   "type": "text",
+   "x": 870,
+   "y": 569.6,
+   "width": 810,
+   "height": 50.4,
+   "z_index": 5,
+   "content": "Refreshingly different.",
+   "font_family": "Solstice Sans",
+   "font_size": 42,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.85)",
+   "text_align": "center"
+  },
+  {
+   "id": "badge1_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 1104.0,
+   "y": 781.5,
+   "width": 342.1,
+   "height": 70,
+   "fill_color": "rgba(43,27,46,1)",
+   "corner_radius": 35.0,
+   "z_index": 3,
+   "group_id": "badge1"
+  },
+  {
+   "id": "badge1_label",
+   "type": "text",
+   "x": 1104.0,
+   "y": 799.2,
+   "width": 342.1,
+   "height": 28.8,
+   "z_index": 5,
+   "content": "AWARD WINNING 2026",
+   "font_family": "Solstice Sans",
+   "font_size": 24,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "group_id": "badge1"
+  },
+  {
+   "id": "cta_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 1120.0,
+   "y": 972.5,
+   "width": 310.0,
+   "height": 124,
+   "fill_color": "rgba(232,106,58,1)",
+   "corner_radius": 62.0,
+   "z_index": 3,
+   "group_id": "cta"
+  },
+  {
+   "id": "cta_label",
+   "type": "text",
+   "x": 1120.0,
+   "y": 1004.3,
+   "width": 310.0,
+   "height": 50.4,
+   "z_index": 5,
+   "content": "Order Now",
+   "font_family": "Solstice Sans",
+   "font_size": 42,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "group_id": "cta"
+  },
+  {
+   "id": "deco_circle_1",
+   "type": "shape",
+   "shape_type": "ellipse",
+   "x": 20.0,
+   "y": 250.0,
+   "width": 740,
+   "height": 740,
+   "fill_color": "rgba(255,255,255,1)",
+   "opacity": 0.15,
+   "z_index": 1
+  }
+ ]
+}

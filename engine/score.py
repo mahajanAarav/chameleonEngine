@@ -165,6 +165,48 @@ def metrics(source: dict, output: dict) -> dict:
             if _area(r) > 0 and e["type"] in ("text", "image"):
                 clash += _inter(dr, r) / _area(r)
     deco_clash = math.exp(-3 * clash)
+    # design conventions: where things sit, balance, breathing room, headline lines, reading order
+    def centre(role):
+        us = design.by_role(role)
+        rs = [_rect(out_by_id[m["id"]]) for u in us[:1] for m in u.members if m["id"] in out_by_id]
+        if not rs:
+            return None
+        return ((min(r[0] for r in rs) + max(r[2] for r in rs)) / 2 / cw, (min(r[1] for r in rs) + max(r[3] for r in rs)) / 2 / ch)
+
+    lc, pc = centre("logo"), centre("product")
+    logo_cy = 0.5 if lc is None else lc[1]
+    logo_cx_off = 0.0 if lc is None else abs(lc[0] - 0.5)
+    prod_cx_off = 0.0 if pc is None else abs(pc[0] - 0.5)
+    prod_cy_off = 0.0 if pc is None else abs(pc[1] - 0.5)
+    if body:
+        tot = sum(_area(r) for r in body) or 1.0
+        cent_dx = abs(sum((r[0] + r[2]) / 2 * _area(r) for r in body) / tot / cw - 0.5)
+        cent_dy = abs(sum((r[1] + r[3]) / 2 * _area(r) for r in body) / tot / ch - 0.5)
+    else:
+        cent_dx = cent_dy = 0.0
+    gaps = []
+    for i in range(len(body)):
+        for j in range(i + 1, len(body)):
+            a, b = body[i], body[j]
+            dx, dy = max(a[0] - b[2], b[0] - a[2]), max(a[1] - b[3], b[1] - a[3])
+            if max(dx, dy) > 0:
+                gaps.append(max(dx, dy))
+    min_gap = min(0.15, (min(gaps) if gaps else 0.15 * min(cw, ch)) / min(cw, ch))
+    head_lines = 1.0
+    if heads and heads[0].members[0]["id"] in out_by_id:
+        head_lines = float(min(4, measure_text(out_by_id[heads[0].members[0]["id"]])["n_lines"]))
+    flow = [(u, centre(u.role)) for u in design.units
+            if u.role in ("logo", "product", "headline", "supporting", "cta", "cta_text") and centre(u.role)]
+    axis = 0 if cw / ch > 1.8 else 1
+    agree_pairs = total_pairs = 0
+    for i in range(len(flow)):
+        for j in range(i + 1, len(flow)):
+            (ua, ca), (ub, cb) = flow[i], flow[j]
+            if ua.order != ub.order and ca[axis] != cb[axis]:
+                total_pairs += 1
+                agree_pairs += (ua.order < ub.order) == (ca[axis] < cb[axis])
+    order = agree_pairs / total_pairs if total_pairs else 1.0
+
     # widows: a wrapped text whose last line is a short orphan looks accidental
     widows = 0
     for e, _ in content:
@@ -179,6 +221,8 @@ def metrics(source: dict, output: dict) -> dict:
              "coverage": coverage, "logo": _clamp(rel_area("logo") / 0.6),
              "cta": _clamp(rel_area(cta_role) / 0.5), "headline": _clamp(head_rel / 0.7),
              "product": _clamp(rel_area("product") / 0.6), "prod_size": prod_size, "cta_size": cta_size,
-             "head_size": head_size, "fill": fill, "deco_clash": deco_clash, "wrap": wrap}
-    score = 0.0 if errors else 100 * sum(WEIGHTS[k] * v for k, v in terms.items())
+             "head_size": head_size, "fill": fill, "deco_clash": deco_clash, "wrap": wrap,
+             "logo_cy": logo_cy, "logo_cx_off": logo_cx_off, "prod_cx_off": prod_cx_off, "prod_cy_off": prod_cy_off,
+             "cent_dx": cent_dx, "cent_dy": cent_dy, "min_gap": min_gap, "head_lines": head_lines, "order": order}
+    score = 0.0 if errors else 100 * sum(WEIGHTS[k] * terms[k] for k in WEIGHTS)
     return {"score": score, "errors": errors, "warns": [m for s, m in probs if s == "warn"], **terms}

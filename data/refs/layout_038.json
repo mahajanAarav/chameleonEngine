@@ -1,0 +1,179 @@
+{
+ "canvas": {
+  "width": 728,
+  "height": 90
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 728,
+   "height": 90,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 14,
+   "y": 26.0,
+   "width": 114,
+   "height": 38.0,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "headline",
+   "type": "text",
+   "x": 138,
+   "y": 14.9,
+   "width": 290,
+   "height": 43.2,
+   "z_index": 5,
+   "content": "Introducing the All-New Limited-Batch Solstice Chase the Light Botanical Sparkling Collection \u2014 Crafted Exclusively for Golden Hour Gatherings",
+   "font_family": "Solstice Serif",
+   "font_size": 12,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "style_runs": [
+    {
+     "start": 6,
+     "end": 16,
+     "color": "rgba(240,178,66,1)"
+    }
+   ]
+  },
+  {
+   "id": "subhead",
+   "type": "text",
+   "x": 138,
+   "y": 63.1,
+   "width": 290,
+   "height": 12.0,
+   "z_index": 5,
+   "content": "Refreshingly different.",
+   "font_family": "Solstice Sans",
+   "font_size": 10,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.85)",
+   "text_align": "center"
+  },
+  {
+   "id": "badge1_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 440,
+   "y": 13.0,
+   "width": 84.3,
+   "height": 18,
+   "fill_color": "rgba(43,27,46,1)",
+   "corner_radius": 9.0,
+   "z_index": 3,
+   "group_id": "badge1"
+  },
+  {
+   "id": "badge1_label",
+   "type": "text",
+   "x": 440,
+   "y": 16.2,
+   "width": 84.3,
+   "height": 9.6,
+   "z_index": 5,
+   "content": "LIMITED EDITION",
+   "font_family": "Solstice Sans",
+   "font_size": 8,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "group_id": "badge1"
+  },
+  {
+   "id": "badge2_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 440,
+   "y": 36.0,
+   "width": 111.4,
+   "height": 18,
+   "fill_color": "rgba(43,27,46,1)",
+   "corner_radius": 9.0,
+   "z_index": 3,
+   "group_id": "badge2"
+  },
+  {
+   "id": "badge2_label",
+   "type": "text",
+   "x": 440,
+   "y": 39.2,
+   "width": 111.4,
+   "height": 9.6,
+   "z_index": 5,
+   "content": "AWARD WINNING 2026",
+   "font_family": "Solstice Sans",
+   "font_size": 8,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "group_id": "badge2"
+  },
+  {
+   "id": "badge3_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 440,
+   "y": 59.0,
+   "width": 71.9,
+   "height": 18,
+   "fill_color": "rgba(43,27,46,1)",
+   "corner_radius": 9.0,
+   "z_index": 3,
+   "group_id": "badge3"
+  },
+  {
+   "id": "badge3_label",
+   "type": "text",
+   "x": 440,
+   "y": 62.2,
+   "width": 71.9,
+   "height": 9.6,
+   "z_index": 5,
+   "content": "NEW FLAVOR",
+   "font_family": "Solstice Sans",
+   "font_size": 8,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "group_id": "badge3"
+  },
+  {
+   "id": "cta",
+   "type": "text",
+   "x": 548,
+   "y": 16,
+   "width": 166,
+   "height": 16.8,
+   "z_index": 5,
+   "content": "Shop the Summer Line",
+   "font_family": "Solstice Sans",
+   "font_size": 14,
+   "font_weight": "bold",
+   "color": "rgba(232,106,58,1)",
+   "text_align": "center"
+  },
+  {
+   "id": "holiday_watermark",
+   "type": "image",
+   "asset_id": "solstice_holiday_badge_2025.png",
+   "x": 596.0,
+   "y": 44.7,
+   "width": 70,
+   "height": 31.3,
+   "z_index": 2
+  }
+ ]
+}

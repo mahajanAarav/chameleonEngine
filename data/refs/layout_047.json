@@ -1,0 +1,106 @@
+{
+ "canvas": {
+  "width": 1200,
+  "height": 627
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 1200,
+   "height": 627,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 475.0,
+   "y": 154.61,
+   "width": 250,
+   "height": 77.38,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "headline",
+   "type": "text",
+   "x": 100,
+   "y": 285.99,
+   "width": 1000,
+   "height": 81.6,
+   "z_index": 5,
+   "content": "Summer Starts Here",
+   "font_family": "Solstice Serif",
+   "font_size": 68,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center"
+  },
+  {
+   "id": "subhead",
+   "type": "text",
+   "x": 100,
+   "y": 385.59,
+   "width": 1000,
+   "height": 36.0,
+   "z_index": 5,
+   "content": "Refreshingly different.",
+   "font_family": "Solstice Sans",
+   "font_size": 30,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.85)",
+   "text_align": "center"
+  },
+  {
+   "id": "cta",
+   "type": "text",
+   "x": 100,
+   "y": 451.59,
+   "width": 1000,
+   "height": 40.8,
+   "z_index": 5,
+   "content": "Order Now",
+   "font_family": "Solstice Sans",
+   "font_size": 34,
+   "font_weight": "bold",
+   "color": "rgba(232,106,58,1)",
+   "text_align": "center"
+  },
+  {
+   "id": "ribbon_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 912.16,
+   "y": 61.51,
+   "width": 250,
+   "height": 44,
+   "fill_color": "rgba(220,60,50,1)",
+   "corner_radius": 4.94,
+   "rotation": -12,
+   "z_index": 4,
+   "group_id": "ribbon"
+  },
+  {
+   "id": "ribbon_label",
+   "type": "text",
+   "x": 912.16,
+   "y": 69.11,
+   "width": 250,
+   "height": 24.0,
+   "z_index": 6,
+   "content": "SUNSET SALE",
+   "font_family": "Solstice Sans",
+   "font_size": 20,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "rotation": -12,
+   "group_id": "ribbon"
+  }
+ ]
+}

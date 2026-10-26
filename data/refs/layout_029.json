@@ -1,0 +1,138 @@
+{
+ "canvas": {
+  "width": 160,
+  "height": 600
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 160,
+   "height": 600,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 15.0,
+   "y": 85.2,
+   "width": 130,
+   "height": 40.6,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "product",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 5.0,
+   "y": 123.8,
+   "width": 150,
+   "height": 150.0,
+   "fit": "contain",
+   "z_index": 3
+  },
+  {
+   "id": "headline",
+   "type": "text",
+   "x": 8,
+   "y": 279.8,
+   "width": 144,
+   "height": 176.4,
+   "z_index": 5,
+   "content": "New Season, New Sparkle: Meet the Botanical Infusions Everyone Is Talking About",
+   "font_family": "Solstice Serif",
+   "font_size": 21,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "style_runs": [
+    {
+     "start": 6,
+     "end": 16,
+     "color": "rgba(240,178,66,1)"
+    }
+   ]
+  },
+  {
+   "id": "subhead",
+   "type": "text",
+   "x": 8,
+   "y": 464.2,
+   "width": 144,
+   "height": 39.6,
+   "z_index": 5,
+   "content": "Botanical sparkling infusions, crafted for golden hour.",
+   "font_family": "Solstice Sans",
+   "font_size": 11,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.85)",
+   "text_align": "center"
+  },
+  {
+   "id": "cta_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 37.1,
+   "y": 517.8,
+   "width": 85.8,
+   "height": 34,
+   "fill_color": "rgba(232,106,58,1)",
+   "corner_radius": 17.0,
+   "z_index": 3,
+   "group_id": "cta"
+  },
+  {
+   "id": "cta_label",
+   "type": "text",
+   "x": 37.1,
+   "y": 525.5,
+   "width": 85.8,
+   "height": 15.6,
+   "z_index": 5,
+   "content": "Order Now",
+   "font_family": "Solstice Sans",
+   "font_size": 13,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "group_id": "cta"
+  },
+  {
+   "id": "ribbon_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 18.0,
+   "y": 56.7,
+   "width": 124,
+   "height": 22,
+   "fill_color": "rgba(220,60,50,1)",
+   "corner_radius": 2.4,
+   "rotation": -8,
+   "z_index": 4,
+   "group_id": "ribbon"
+  },
+  {
+   "id": "ribbon_label",
+   "type": "text",
+   "x": 18.0,
+   "y": 60.5,
+   "width": 124,
+   "height": 12.0,
+   "z_index": 6,
+   "content": "SUNSET SALE",
+   "font_family": "Solstice Sans",
+   "font_size": 10,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "rotation": -8,
+   "group_id": "ribbon"
+  }
+ ]
+}

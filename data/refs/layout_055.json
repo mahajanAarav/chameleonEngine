@@ -1,0 +1,125 @@
+{
+ "canvas": {
+  "width": 300,
+  "height": 250
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 300,
+   "height": 250,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 96.0,
+   "y": 3,
+   "width": 108.0,
+   "height": 36,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "product",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 2,
+   "y": 36,
+   "width": 170.0,
+   "height": 170,
+   "fit": "contain",
+   "z_index": 3
+  },
+  {
+   "id": "headline",
+   "type": "text",
+   "x": 134.0,
+   "y": 42,
+   "width": 162,
+   "height": 64.8,
+   "z_index": 5,
+   "content": "Chase the Light",
+   "font_family": "Solstice Serif",
+   "font_size": 27,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center"
+  },
+  {
+   "id": "subhead",
+   "type": "text",
+   "x": 134.0,
+   "y": 109.8,
+   "width": 162,
+   "height": 66.0,
+   "z_index": 5,
+   "content": "Small-batch botanical infusions blended with wild honey, blood orange zest and a hint of sea salt, made for long summer evenings.",
+   "font_family": "Solstice Sans",
+   "font_size": 11,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.85)",
+   "text_align": "center"
+  },
+  {
+   "id": "cta_bg",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 159.0,
+   "y": 183.8,
+   "width": 112,
+   "height": 35,
+   "fill_color": "rgba(232,106,58,1)",
+   "corner_radius": 17.5,
+   "z_index": 3,
+   "group_id": "cta"
+  },
+  {
+   "id": "cta_label",
+   "type": "text",
+   "x": 159.0,
+   "y": 191.9,
+   "width": 112,
+   "height": 15.6,
+   "z_index": 5,
+   "content": "Get Yours Today",
+   "font_family": "Solstice Sans",
+   "font_size": 13,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "group_id": "cta"
+  },
+  {
+   "id": "holiday_watermark",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 4,
+   "y": 212,
+   "width": 30.0,
+   "height": 13.4,
+   "z_index": 2
+  },
+  {
+   "id": "legal_text",
+   "type": "text",
+   "x": 8.0,
+   "y": 227,
+   "width": 284,
+   "height": 19.2,
+   "z_index": 6,
+   "content": "Please drink responsibly. Botanical Sparkling Co., 2026. Void where prohibited. See solstice.com/terms for full details.",
+   "font_family": "Solstice Sans",
+   "font_size": 8,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.6)",
+   "text_align": "center"
+  }
+ ]
+}

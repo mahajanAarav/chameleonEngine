@@ -1,0 +1,114 @@
+{
+ "case": "s24->Mobile Banner",
+ "split": "train",
+ "source": {
+  "canvas": {
+   "width": 1080,
+   "height": 566
+  },
+  "elements": [
+   {
+    "id": "bg",
+    "type": "image",
+    "asset_id": "solstice_bg_gradient.png",
+    "x": 0,
+    "y": 0,
+    "width": 1080,
+    "height": 566,
+    "fit": "cover",
+    "z_index": 0
+   },
+   {
+    "id": "logo",
+    "type": "image",
+    "asset_id": "solstice_logo_lockup.png",
+    "x": 197,
+    "y": 26,
+    "width": 168,
+    "height": 52,
+    "fit": "contain",
+    "z_index": 5
+   },
+   {
+    "id": "headline",
+    "type": "text",
+    "x": 562,
+    "y": 236,
+    "width": 475,
+    "height": 32.4,
+    "z_index": 5,
+    "content": "Summer Starts Here",
+    "font_family": "Solstice Serif",
+    "font_size": 27,
+    "font_weight": "bold",
+    "color": "rgba(255,255,255,1)",
+    "text_align": "center"
+   },
+   {
+    "id": "subhead",
+    "type": "text",
+    "x": 585,
+    "y": 281,
+    "width": 428,
+    "height": 16.8,
+    "z_index": 5,
+    "content": "Refreshingly different.",
+    "font_family": "Solstice Sans",
+    "font_size": 14,
+    "font_weight": "regular",
+    "color": "rgba(255,255,255,0.85)",
+    "text_align": "center"
+   },
+   {
+    "id": "cta",
+    "type": "text",
+    "x": 562,
+    "y": 312,
+    "width": 475,
+    "height": 18.0,
+    "z_index": 5,
+    "content": "Order Now",
+    "font_family": "Solstice Sans",
+    "font_size": 15,
+    "font_weight": "bold",
+    "color": "rgba(232,106,58,1)",
+    "text_align": "center"
+   },
+   {
+    "id": "ribbon_bg",
+    "type": "shape",
+    "shape_type": "rectangle",
+    "x": 902,
+    "y": 16,
+    "width": 157,
+    "height": 28,
+    "fill_color": "rgba(220,60,50,1)",
+    "corner_radius": 3.144444444444444,
+    "rotation": -12,
+    "z_index": 4,
+    "group_id": "ribbon"
+   },
+   {
+    "id": "ribbon_label",
+    "type": "text",
+    "x": 902,
+    "y": 22,
+    "width": 157,
+    "height": 12.0,
+    "z_index": 6,
+    "content": "SUNSET SALE",
+    "font_family": "Solstice Sans",
+    "font_size": 10,
+    "font_weight": "bold",
+    "color": "rgba(255,255,255,1)",
+    "text_align": "center",
+    "rotation": -12,
+    "group_id": "ribbon"
+   }
+  ]
+ },
+ "target": {
+  "width": 300,
+  "height": 50
+ }
+}
