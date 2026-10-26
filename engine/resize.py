@@ -86,10 +86,13 @@ def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
 def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, Any]:
     """Keep the best-scoring candidate. The safety net is always a candidate, so the result is
     never worse than it by our own score."""
-    from engine.picker import Picker
     from engine.score import metrics
 
-    picker = Picker.load()  # learned from designer references; None -> hand-set score
+    try:  # learned from designer references; any problem (missing numpy or file) -> hand-set score
+        from engine.picker import Picker
+        picker = Picker.load()
+    except Exception:
+        picker = None
     tw, th = target_canvas["width"], target_canvas["height"]
 
     # collisions are the judge's first criterion, then a clearly visible logo (brand), then our score;

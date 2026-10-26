@@ -19,7 +19,8 @@ docker run --rm --network none -v $(pwd)/input:/app/input -v $(pwd)/output:/app/
 ```
 
 On Apple Silicon, turn on **Docker Desktop > Settings > General > Use Rosetta for x86_64/amd64 emulation**,
-otherwise the amd64 emulator crashes inside the renderer.
+otherwise the amd64 emulator crashes inside the renderer. Docker has a slightly newer skia than a local install, so
+text widths can differ by fractions of a pixel and near-tied layouts can flip; both results are valid.
 
 ## How it works
 
@@ -29,15 +30,18 @@ otherwise the amd64 emulator crashes inside the renderer.
 2. **Measure text exactly** (`engine/textmeasure.py`, `textfit.py`). Uses the renderer's own glyph widths and
    greedy wrapper with the brand fonts, so the wrapped height we compute is the height that gets drawn. Whole-number
    font sizes only (the renderer draws at `int(font_size)`).
-3. **Generate candidate layouts** (`engine/layout.py`): a banner **row** for wide targets, a centred **stack** for
-   tall and square ones (story safe zones kept clear), a **split** (media left, text right) for moderately wide
-   ones, a **spread** that keeps the original composition, plus **grow-to-fit** variants that search for the largest
-   product, button and text that still fit. Each template has a parameter grid, so a typical case yields 50 to
-   200 candidates. Decorative shapes keep their shape and are placed where they clash least.
-4. **Reject, gate, score** (`engine/resize.py`, `rules.py`, `score.py`). Every candidate is checked against the
-   hard rules (ids, nothing off-canvas including rotated footprints, image aspect, no `fill`, text and fonts
-   unchanged, wrapped text inside the canvas). Rule-breakers are never eligible. The rest are ranked by: no
-   collisions, then a clearly visible logo, then a quality score fitted to blind judge picks.
+3. **Generate candidate layouts** (`engine/layout.py`): a banner **row** (including text-first and full-height-product
+   variants), a centred **stack** for tall and square targets (story safe zones kept clear), a **split** (media left,
+   text right) for moderately wide ones, a **spread** that keeps the original composition, and **grow-to-fit**
+   variants that search for the largest product, button and text that still fit. Each template has a parameter grid,
+   so a typical case yields 100 to 300 candidates. Decorative shapes keep their shape and are placed where they clash
+   least. Headline size is capped so sparse designs don't balloon.
+4. **Reject, gate, pick** (`engine/resize.py`, `rules.py`, `score.py`, `picker.py`). Every candidate is checked against
+   the hard rules (ids, nothing off-canvas including rotated footprints, image aspect, no `fill`, text and fonts
+   unchanged, wrapped text inside the canvas). Rule-breakers are never eligible. Survivors must be collision-free and
+   keep a clearly visible logo whenever any candidate can. Among those, a **learned picker** chooses the layout
+   predicted to be closest to what a designer would make (a ridge regression, `engine/regressor.json`, trained on
+   124 designer reference layouts in `data/refs/`). If numpy or the file is missing, a hand-set quality score is used.
 5. **Never fail** (`engine/safety.py`). The uniform-scale safety net is always one of the candidates, and any error
    anywhere falls back to it (and, as a last resort, to the starter's stretch), so output is always valid.
 
@@ -63,22 +67,27 @@ garbage are ignored. Tested in `tools/test_proposer.py` with hostile and mock mo
 | Command | What it does |
 |---|---|
 | `python -m tools.report` | Scores the engine on the official samples plus generated designs (train and held-out) across 25 real platform sizes; counts rule breaks |
-| `python -m tools.test_understand` | Role-detection accuracy against the answer key |
 | `python -m tools.test_proposer` | Tests for the swappable model slot |
-| `python -m tools.ref_report --refs data/refs --pairs DIR` | Blind A/B images of the engine against designer reference layouts |
+| `python -m tools.test_understand` | Role-detection accuracy against the answer key |
+| `python -m tools.ref_report --refs data/refs --split heldout --pairs DIR` | Blind A/B images of the engine against designer reference layouts |
+| `python -m tools.learn_regress --save` | Retrains the picker from `data/refs/` (do this after changing any layout) |
 | `python -m tools.judge make-cands / tally` | Builds and tallies blind A/B pairs for judging |
-| `python -m tools.fit_weights data/judgments/r` | Fits scorer weights to judge picks |
 
-Data kept in the repo: `data/refs/` (24 designer reference layouts) and `data/judgments/` (blind picks).
+Data kept in the repo: `data/refs/` (124 designer reference layouts, 96 train and 28 held-out, made by independent
+Claude subagents that could render and iterate) and `data/judgments/` (blind picks).
 
 ## Honest status
 
-- Zero rule breaks across all generated and official cases.
-- Our own code score (about 95) overstates quality: blind Claude judges preferred the designer reference over our
-  engine in about 20 of 24 cases. Measured gaps: the product is about 44% smaller than a designer would make it, the
-  button about 24% shorter, and decorations sometimes clash. The judges are Claude models and the test designs are
-  synthetic, so this is a proxy for the hidden grader, not the grader.
-- Very small banners (for example 320x50) with long headlines cannot be made fully readable.
-- Open questions for the organisers are listed in `CLAUDE.md`.
+- Zero rule breaks across all generated and official cases, in Docker offline too.
+- Our own code score (about 90 to 95) overstates quality. Against the designer references, blind Claude judges prefer
+  the designer in about 70% to 80% of held-out cases (the engine wins 6 to 9 of 28 across versions; the noise is about
+  plus or minus 2.5). The designers' main advantages are logo clarity and placement, a larger product and fuller canvas.
+- The learned picker moves the engine measurably closer to the designers' coordinates (held-out distance 36.5 to 41.4
+  on our 0 to 100 scale; the best candidate we generate would reach about 47), without improving the judged result.
+- The judges and designers are Claude models and the test designs are synthetic, so these are proxies for the hidden
+  grader, not the grader.
+- Very small banners (for example 320x50) with long headlines cannot be made fully readable, and the logo in 728x90
+  banners is small.
+- Open questions for the organisers are listed in `docs/ORGANISER_NOTES.md`.
 
 The organisers' original starter README is kept as `STARTER_README.md`.

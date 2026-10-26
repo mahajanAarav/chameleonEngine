@@ -24,3 +24,6 @@ output/*
 .venv/
 .venv/
 .venv/
+
+# unrelated sibling repo that lives in this folder
+fullbatch/
