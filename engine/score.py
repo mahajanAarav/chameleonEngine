@@ -111,7 +111,15 @@ def metrics(source: dict, output: dict) -> dict:
                 continue
             small = min(_area(ra), _area(rb))
             if small > 0:
-                total += min(1.0, _inter(ra, rb) / small)
+                frac = min(1.0, _inter(ra, rb) / small)
+                # a pair the source design already overlaps on purpose (word-art behind a product) may keep that overlap
+                sa, sb = src.get(a["id"]), src.get(b["id"])
+                if sa and sb and frac > 0:
+                    ssmall = min(_area(_rect(sa)), _area(_rect(sb)))
+                    f0 = min(1.0, _inter(_rect(sa), _rect(sb)) / ssmall) if ssmall > 0 else 0.0
+                    if f0 >= 0.1:
+                        frac = max(0.0, frac - f0 - 0.1)
+                total += frac
     overlap = math.exp(-2 * total)
 
     # readability: size floor, headline-sized text counts triple
