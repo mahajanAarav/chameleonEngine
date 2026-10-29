@@ -86,6 +86,13 @@ Claude subagents that could render and iterate) and `data/judgments/` (blind pic
 - Our own code score (about 90 to 95) overstates quality. Against the designer references, blind Claude judges prefer
   the designer in about 70% to 80% of held-out cases (the engine wins 6 to 9 of 28 across versions; the noise is about
   plus or minus 2.5). The designers' main advantages are logo clarity and placement, a larger product and fuller canvas.
+- Latest stage (real-ad robustness): the engine now reads image pixels (never changes them) to find cut-out subjects,
+  glows and busy or dark areas behind text; picks the spotlight image and keeps it big (hero gate); bundles touching
+  images, halos, bars and word-art text into single units; keeps collages in their original composition; tries
+  mirrored layouts when text sits on a poor background; and runs a final repair pass so no text leaves the canvas.
+  Fuzz test: 1800+ odd designs, 0 crashes, 0 rule errors. Picker retrained on 178 designer references (including
+  look-alikes of real ads). Final blind round on 46 held-out tasks: engine won 13 (about 28%), flat within noise.
+  Docker offline re-verified on the final engine: 3/3 samples, 0 rule errors.
 - The learned picker moves the engine measurably closer to the designers' coordinates (held-out distance 36.5 to 41.4
   on our 0 to 100 scale; the best candidate we generate would reach about 47), without improving the judged result.
 - The judges and designers are Claude models and the test designs are synthetic, so these are proxies for the hidden
