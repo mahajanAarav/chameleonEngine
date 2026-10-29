@@ -85,6 +85,16 @@ def summarize(rows, label):
     for r in rows:
         by.setdefault(r["bucket"], []).append(r["score"])
     print("   by shape: " + "  ".join(f"{b} {statistics.mean(v):.1f} (n={len(v)})" for b, v in sorted(by.items())))
+    scores = sorted(r["score"] for r in rows)
+    p10 = scores[max(0, int(0.1 * len(scores)) - 1)]
+    print(f"   consistency: worst case {scores[0]:.1f} | 10th percentile {p10:.1f} | spread (std) "
+          f"{statistics.pstdev(scores):.1f}")
+    sizes = {}
+    for r in rows:
+        sizes.setdefault(r["target"], []).append(r["score"])
+    if len(sizes) > 1:
+        per = sorted((statistics.mean(v), k, len(v)) for k, v in sizes.items())
+        print("   weakest sizes: " + "  ".join(f"{k[0]}x{k[1]} {m:.1f} (n={n})" for m, k, n in per[:4]))
     for r in bad[:3]:
         print(f"   ERROR {r['id']}: {r['errors'][0]}")
 
