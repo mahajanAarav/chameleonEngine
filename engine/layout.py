@@ -596,6 +596,48 @@ SPLIT_PARAMS = [
 ]
 
 
+def layout_anchor(design: Design, TW: float, TH: float, P: dict):
+    """Photo-anchored: every unit stays on the same picture content it covered in the original.
+
+    The background photo is cropped differently at a new shape (cover), so a proportional spread puts text over other
+    parts of the photo than the designer chose. Here each unit's centre is mapped through the photo: source canvas ->
+    picture pixel -> new canvas. Only for photo-like backgrounds (busy images); smooth gradients are left to the others.
+    """
+    from engine import pixels
+    from engine.safety import _fit_unit, _keep_text_inside
+
+    bgu = design.first("bg")
+    if bgu is None or bgu.members[0]["type"] != "image" or bgu.members[0].get("fit", "contain") != "cover":
+        return None
+    asset = bgu.members[0].get("asset_id", "")
+    size, st = pixels.asset_size(asset), pixels.asset_stats(asset)
+    if not size or not st or st["busy"] < 0.008:
+        return None
+    iw, ih = size
+    sw, sh = design.canvas["width"], design.canvas["height"]
+    fs, ft = max(sw / iw, sh / ih), max(TW / iw, TH / ih)
+    k = ft / fs * P["grow"]
+    out: dict[str, dict] = {}
+    for u in design.units:
+        if u.role == "bg":
+            e = copy.deepcopy(u.members[0])
+            e.update(x=0.0, y=0.0, width=float(TW), height=float(TH), fit="cover")
+            out[e["id"]] = e
+            continue
+        ucx, ucy = (u.bbox[0] + u.bbox[2]) / 2, (u.bbox[1] + u.bbox[3]) / 2
+        nx = ((ucx - sw / 2) / fs) * ft + TW / 2
+        ny = ((ucy - sh / 2) / fs) * ft + TH / 2
+        els = _xform(u, k, nx, ny)
+        _fit_unit(els, TW, TH)
+        for e in els:
+            out[e["id"]] = e
+    _keep_text_inside(list(out.values()), TW, TH)
+    return out
+
+
+ANCHOR_PARAMS = [{"grow": g} for g in (1.0, 1.3, 1.6)]
+
+
 def layout_spread(design: Design, TW: float, TH: float, P: dict):
     from engine.safety import _fit_unit, _keep_text_inside
     sw, sh = design.canvas["width"], design.canvas["height"]

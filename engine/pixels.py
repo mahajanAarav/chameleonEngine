@@ -30,6 +30,15 @@ def luminance(rgb: np.ndarray) -> np.ndarray:
     return 0.2126 * rgb[..., 0] + 0.7152 * rgb[..., 1] + 0.0722 * rgb[..., 2]
 
 
+def to_linear(c: np.ndarray) -> np.ndarray:
+    """sRGB 0..1 to linear light (what contrast ratios are defined on)."""
+    return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+
+
+def rel_luminance(rgb: np.ndarray) -> np.ndarray:
+    return luminance(to_linear(rgb))
+
+
 @lru_cache(maxsize=256)
 def asset_stats(asset_id: str):
     """transparent (share of clearly transparent pixels), mean_alpha, busy (edge strength), luma; or None."""
@@ -58,7 +67,7 @@ def is_soft(asset_id: str) -> bool:
 
 
 def luma_under(asset_id: str, img_box: tuple, fit: str, rect: tuple):
-    """Mean luminance and busyness of an image's pixels under a canvas rectangle.
+    """Mean (linear) luminance and busyness of an image's pixels under a canvas rectangle.
 
     img_box = (x, y, w, h) of the image element on the canvas; fit = cover / contain / fill; rect = (x0, y0, x1, y1)
     on the canvas. Returns (mean_luma, busy) or None if the image or overlap is unavailable.
@@ -87,4 +96,16 @@ def luma_under(asset_id: str, img_box: tuple, fit: str, rect: tuple):
     if not mask.any():
         return None
     gy, gx = np.gradient(lum) if min(lum.shape) > 1 else (np.zeros_like(lum), np.zeros_like(lum))
-    return float(lum[mask].mean()), float(np.hypot(gx, gy)[mask].mean())
+    return float(rel_luminance(patch[..., :3])[mask].mean()), float(np.hypot(gx, gy)[mask].mean())
+
+
+@lru_cache(maxsize=256)
+def asset_size(asset_id: str):
+    """Natural (width, height) of an asset, or None."""
+    try:
+        from PIL import Image
+
+        with Image.open(ASSETS / str(asset_id)) as im:
+            return im.size
+    except Exception:
+        return None

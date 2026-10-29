@@ -69,6 +69,7 @@ garbage are ignored. Tested in `tools/test_proposer.py` with hostile and mock mo
 | `python -m tools.report` | Scores the engine on the official samples plus generated designs (train and held-out) across 25 real platform sizes; counts rule breaks |
 | `python -m tools.test_proposer` | Tests for the swappable model slot |
 | `python -m tools.real_ads --sheet out.png` | Look-alikes of real brand ads (McDonald's, Heinz, IKEA, Pizza Hut, Starbucks, Ford): hero share kept, text growth, rule errors |
+| `python -m tools.test_pixels` | Checks the engine reads the real picture pixels behind text (contrast, busyness) and picks readable positions |
 | `python -m tools.fuzz -n 300` | Throws odd designs (no logo, empty or huge text, rotated and zero-size elements, tiny canvases) at the engine: 0 crashes, about 1% unavoidable rule errors |
 | `python -m tools.test_anchor` | Checks that things that belong together (bar under products, aura behind, image clusters) stay together |
 | `python -m tools.test_understand` | Role-detection accuracy against the answer key |

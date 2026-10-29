@@ -41,6 +41,9 @@ def _round(el: dict) -> dict:
 
 
 OVERLAP_OK = 0.85  # overlap term at or above this counts as collision-free
+READ_FRAC = 0.85  # text must be at least this readable, relative to the best clean layout (real pixels behind it)
+MIRROR_TOP = 10  # how many of the best layouts get a mirrored twin tried
+MIRROR_GAIN = 0.15  # the twin must be at least this much more readable to be kept
 COLLAGE_MIN = 4  # this many separate pictures (not touching) make a collage
 HERO_FRAC = 0.5  # the spotlight must keep at least this fraction of the best share any clean layout gives it
 HERO_FRAC_DOMINANT = 0.8  # ... and this much when it dominates the source design (the point of the ad)
@@ -48,11 +51,24 @@ HERO_DOMINANT_SHARE = 0.33  # a spotlight covering at least this share of the so
 LOGO_OK = 0.45  # logo term at or above this counts as a clearly visible logo (about 27% of its original relative area)
 
 
+def _mirror(layout: dict) -> dict:
+    """The same layout flipped left to right (rotations flip too). Positions only; nothing else changes."""
+    import copy
+
+    out = copy.deepcopy(layout)
+    tw = out["canvas"]["width"]
+    for e in out["elements"]:
+        e["x"] = round(tw - e["x"] - e["width"], 2)
+        if e.get("rotation"):
+            e["rotation"] = -e["rotation"]
+    return out
+
+
 def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
     """All candidate layouts as (name, output). Index 0 is always the safety net."""
-    from engine.layout import (GROW_SPLIT_PARAMS, GROW_STACK_PARAMS, ROW_PARAMS, ROW_TIGHT_PARAMS, SPLIT_PARAMS,
+    from engine.layout import (ANCHOR_PARAMS, GROW_SPLIT_PARAMS, GROW_STACK_PARAMS, ROW_PARAMS, ROW_TIGHT_PARAMS, SPLIT_PARAMS,
                                SPLIT_WIDE_PARAMS, SPREAD_PARAMS, STACK_PARAMS, STACK_TIGHT_PARAMS, layout_row, layout_split, layout_split_grow, layout_spread,
-                               layout_stack, layout_stack_grow)
+                               layout_stack, layout_stack_grow, layout_anchor)
     from engine.understand import understand
 
     tw, th = target_canvas["width"], target_canvas["height"]
@@ -62,7 +78,7 @@ def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
     cands = [("safety", finalize(safety_resize(source, target_canvas)))]
 
     design = understand(source)
-    templates = [(layout_spread, SPREAD_PARAMS)]
+    templates = [(layout_spread, SPREAD_PARAMS), (layout_anchor, ANCHOR_PARAMS)]
     # a collage (several separate pictures) only works as its original composition, scaled
     collage = len([u for u in design.units if u.role in ("product", "image")]) >= COLLAGE_MIN
     if not collage:
@@ -112,16 +128,27 @@ def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
         if m["errors"]:  # a layout that breaks a hard rule is never eligible, whatever else it scores
             continue
         scored.append((name, c, m))
+    # where the picture behind the text is poor, try the left-right mirror of the best layouts and keep it only if the
+    # text gets clearly more readable (it flips reading order, so it has to earn its place)
+    for name, c, m in sorted(scored, key=lambda t: -t[2]["score"])[:MIRROR_TOP]:
+        if m["text_readable"] >= 0.95:
+            continue
+        mc = _mirror(c)
+        mm = metrics(source, mc)
+        if not mm["errors"] and mm["text_readable"] >= m["text_readable"] + MIRROR_GAIN:
+            scored.append((name + "+mirror", mc, mm))
     # the spotlight image must keep close to the biggest share any clean layout can give it
     best_hero = max((m["hero_ratio"] for _, _, m in scored if m["overlap"] >= OVERLAP_OK), default=0.0)
     from engine.understand import understand
     sw, sh = source["canvas"]["width"], source["canvas"]["height"]
     hero_area = sum(max(0.0, u.bbox[2] - u.bbox[0]) * max(0.0, u.bbox[3] - u.bbox[1]) for u in understand(source).heroes())
     frac = HERO_FRAC_DOMINANT if hero_area / (sw * sh) >= HERO_DOMINANT_SHARE else HERO_FRAC
-    best, best_key = None, (-1, -1, -1, -1.0)
+    best_read = max((m["text_readable"] for _, _, m in scored if m["overlap"] >= OVERLAP_OK), default=0.0)
+    best, best_key = None, (-1, -1, -1, -1, -1.0)
     for name, c, m in scored:
         value = picker.predict(m, name, tw, th) if picker else m["score"]
-        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, m["hero_ratio"] >= frac * best_hero, value)
+        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, m["hero_ratio"] >= frac * best_hero,
+               m["text_readable"] >= READ_FRAC * best_read, value)
         if key > best_key:
             best, best_key = c, key
     return best if best is not None else safety_resize(source, target_canvas)

@@ -50,6 +50,45 @@ def _is_decoration(el: dict) -> bool:
     return el["type"] == "shape" and not el.get("group_id") and (el.get("opacity", 1) <= 0.35)
 
 
+_RGBA = __import__("re").compile(r"rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+))?\s*\)")
+
+
+def _text_readable(output: dict) -> float:
+    """Contrast and busyness of the real picture pixels behind each text (1.0 = comfortably readable)."""
+    try:
+        import numpy as np
+
+        from engine import pixels
+    except Exception:
+        return 1.0
+    imgs = [e for e in output["elements"] if e["type"] == "image"]
+    num = den = 0.0
+    for e in output["elements"]:
+        if e["type"] != "text":
+            continue
+        rect = _rect(e)
+        z = e.get("z_index") or 0
+        under = [im for im in imgs if (im.get("z_index") or 0) <= z and _inter(_footprint(im), rect) > 0]
+        if not under:
+            continue
+        top = max(under, key=lambda im: im.get("z_index") or 0)
+        res = pixels.luma_under(top.get("asset_id", ""), (top["x"], top["y"], top["width"], top["height"]),
+                                top.get("fit", "contain"), rect)
+        mt = _RGBA.match(str(e.get("color", "")))
+        if res is None or not mt:
+            continue
+        bg, busy = res
+        r, g, b = (float(mt.group(i)) / 255 for i in (1, 2, 3))
+        alpha = float(mt.group(4) or 1) * float(e.get("opacity", 1))
+        lt = float(pixels.rel_luminance(np.array([r, g, b])))
+        eff = alpha * lt + (1 - alpha) * bg
+        contrast = (max(eff, bg) + 0.05) / (min(eff, bg) + 0.05)
+        score = min(1.0, contrast / 4.5) * (1 - 0.5 * min(1.0, busy / 0.08))
+        num += e["font_size"] * score
+        den += e["font_size"]
+    return num / den if den else 1.0
+
+
 def metrics(source: dict, output: dict) -> dict:
     src = {e["id"]: e for e in source["elements"]}
     cw, ch = output["canvas"]["width"], output["canvas"]["height"]
@@ -239,6 +278,7 @@ def metrics(source: dict, output: dict) -> dict:
              "head_size": head_size, "fill": fill, "deco_clash": deco_clash, "wrap": wrap,
              "logo_cy": logo_cy, "logo_cx_off": logo_cx_off, "prod_cx_off": prod_cx_off, "prod_cy_off": prod_cy_off,
              "cent_dx": cent_dx, "cent_dy": cent_dy, "min_gap": min_gap, "head_lines": head_lines, "order": order,
-             "prod_raw": prod_raw, "head_raw": head_raw, "hero_ratio": hero_ratio}
+             "prod_raw": prod_raw, "head_raw": head_raw, "hero_ratio": hero_ratio,
+             "text_readable": _text_readable(output)}
     score = 0.0 if errors else 100 * sum(WEIGHTS[k] * terms[k] for k in WEIGHTS)
     return {"score": score, "errors": errors, "warns": [m for s, m in probs if s == "warn"], **terms}
