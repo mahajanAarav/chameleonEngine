@@ -1,0 +1,68 @@
+{
+ "case": "real:ford->1080x1920",
+ "split": "heldout",
+ "source": {
+  "canvas": {
+   "width": 1920,
+   "height": 1080
+  },
+  "elements": [
+   {
+    "id": "bg",
+    "type": "image",
+    "asset_id": "solstice_bg_gradient.png",
+    "x": 0,
+    "y": 0,
+    "width": 1920,
+    "height": 1080,
+    "fit": "cover",
+    "z_index": 0
+   },
+   {
+    "id": "logo",
+    "type": "image",
+    "asset_id": "solstice_logo_lockup.png",
+    "x": 65,
+    "y": 765,
+    "width": 215,
+    "height": 80,
+    "fit": "contain",
+    "z_index": 5
+   },
+   {
+    "id": "headline",
+    "type": "text",
+    "x": 62,
+    "y": 860,
+    "width": 700,
+    "height": 70,
+    "content": "AnyWhere, AnyTime",
+    "font_family": "Solstice Sans",
+    "font_size": 56,
+    "font_weight": "bold",
+    "color": "rgba(255,255,255,1)",
+    "text_align": "left",
+    "z_index": 6
+   },
+   {
+    "id": "body",
+    "type": "text",
+    "x": 62,
+    "y": 945,
+    "width": 980,
+    "height": 25,
+    "content": "Watch our most impressive F-150 Raptor adapt to all nature conditions - (desert, jungle and Snow). Equipped with a high-powered 3.5-liter EcoBoost engine and Terrain Management System, the F-150 Raptor takes on all obstacles, taking it to a frightening new level",
+    "font_family": "Solstice Sans",
+    "font_size": 20,
+    "font_weight": "regular",
+    "color": "rgba(255,255,255,1)",
+    "text_align": "left",
+    "z_index": 6
+   }
+  ]
+ },
+ "target": {
+  "width": 1080,
+  "height": 1920
+ }
+}

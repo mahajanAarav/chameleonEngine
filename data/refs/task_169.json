@@ -1,0 +1,141 @@
+{
+ "case": "real:elf_collage->728x90",
+ "split": "train",
+ "source": {
+  "canvas": {
+   "width": 1200,
+   "height": 800
+  },
+  "elements": [
+   {
+    "id": "bg",
+    "type": "image",
+    "asset_id": "solstice_bg_gradient.png",
+    "x": 0,
+    "y": 0,
+    "width": 1200,
+    "height": 800,
+    "fit": "cover",
+    "z_index": 0
+   },
+   {
+    "id": "p0",
+    "type": "image",
+    "asset_id": "solstice_bottle.png",
+    "x": 10,
+    "y": 20,
+    "width": 110,
+    "height": 140,
+    "fit": "contain",
+    "z_index": 4
+   },
+   {
+    "id": "p1",
+    "type": "image",
+    "asset_id": "solstice_bottle.png",
+    "x": 120,
+    "y": 205,
+    "width": 100,
+    "height": 170,
+    "fit": "contain",
+    "z_index": 4
+   },
+   {
+    "id": "p2",
+    "type": "image",
+    "asset_id": "solstice_bottle.png",
+    "x": 240,
+    "y": 30,
+    "width": 135,
+    "height": 255,
+    "fit": "contain",
+    "z_index": 4
+   },
+   {
+    "id": "p3",
+    "type": "image",
+    "asset_id": "solstice_bottle.png",
+    "x": 385,
+    "y": 15,
+    "width": 70,
+    "height": 255,
+    "fit": "contain",
+    "z_index": 4
+   },
+   {
+    "id": "p4",
+    "type": "image",
+    "asset_id": "solstice_bottle.png",
+    "x": 480,
+    "y": 120,
+    "width": 100,
+    "height": 300,
+    "fit": "contain",
+    "z_index": 4
+   },
+   {
+    "id": "p5",
+    "type": "image",
+    "asset_id": "solstice_bottle.png",
+    "x": 660,
+    "y": 40,
+    "width": 100,
+    "height": 150,
+    "fit": "contain",
+    "z_index": 4
+   },
+   {
+    "id": "p6",
+    "type": "image",
+    "asset_id": "solstice_bottle.png",
+    "x": 760,
+    "y": 85,
+    "width": 90,
+    "height": 110,
+    "fit": "contain",
+    "z_index": 4
+   },
+   {
+    "id": "p7",
+    "type": "image",
+    "asset_id": "solstice_bottle.png",
+    "x": 910,
+    "y": 490,
+    "width": 260,
+    "height": 260,
+    "fit": "contain",
+    "z_index": 4
+   },
+   {
+    "id": "logo",
+    "type": "image",
+    "asset_id": "solstice_logo_lockup.png",
+    "x": 405,
+    "y": 540,
+    "width": 230,
+    "height": 210,
+    "fit": "contain",
+    "z_index": 5
+   },
+   {
+    "id": "tag",
+    "type": "text",
+    "x": 420,
+    "y": 755,
+    "width": 200,
+    "height": 25,
+    "content": "eyes lips face",
+    "font_family": "Solstice Sans",
+    "font_size": 20,
+    "font_weight": "regular",
+    "color": "rgba(255,255,255,1)",
+    "text_align": "center",
+    "z_index": 6
+   }
+  ]
+ },
+ "target": {
+  "width": 728,
+  "height": 90
+ }
+}

@@ -1,0 +1,64 @@
+{
+ "case": "real:heinz->1080x1920",
+ "split": "train",
+ "source": {
+  "canvas": {
+   "width": 888,
+   "height": 1252
+  },
+  "elements": [
+   {
+    "id": "bg",
+    "type": "image",
+    "asset_id": "solstice_bg_gradient.png",
+    "x": 0,
+    "y": 0,
+    "width": 888,
+    "height": 1252,
+    "fit": "cover",
+    "z_index": 0
+   },
+   {
+    "id": "tower",
+    "type": "image",
+    "asset_id": "solstice_bottle.png",
+    "x": 70,
+    "y": 30,
+    "width": 350,
+    "height": 1170,
+    "fit": "contain",
+    "z_index": 4
+   },
+   {
+    "id": "headline",
+    "type": "text",
+    "x": 400,
+    "y": 140,
+    "width": 450,
+    "height": 70,
+    "content": "No one grows ketchup like Heinz.",
+    "font_family": "Solstice Sans",
+    "font_size": 56,
+    "font_weight": "bold",
+    "color": "rgba(255,255,255,1)",
+    "text_align": "left",
+    "z_index": 6
+   },
+   {
+    "id": "logo",
+    "type": "image",
+    "asset_id": "solstice_logo_lockup.png",
+    "x": 480,
+    "y": 1060,
+    "width": 300,
+    "height": 100,
+    "fit": "contain",
+    "z_index": 5
+   }
+  ]
+ },
+ "target": {
+  "width": 1080,
+  "height": 1920
+ }
+}

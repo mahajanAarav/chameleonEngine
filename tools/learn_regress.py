@@ -19,7 +19,8 @@ import numpy as np
 
 from tools.learn_ranker import featurise, load_tasks
 
-TEMPLATES = ["safety", "layout_spread", "layout_row", "layout_stack", "layout_split", "layout_stack_grow", "layout_split_grow"]
+TEMPLATES = ["safety", "layout_spread", "layout_row", "layout_stack", "layout_split", "layout_stack_grow", "layout_split_grow",
+             "layout_anchor"]
 BUCKETS = ["ultra-wide", "wide", "square", "tall", "ultra-tall"]
 
 
