@@ -93,6 +93,11 @@ Claude subagents that could render and iterate) and `data/judgments/` (blind pic
   Fuzz test: 1800+ odd designs, 0 crashes, 0 rule errors. Picker retrained on 178 designer references (including
   look-alikes of real ads). Final blind round on 46 held-out tasks: engine won 13 (about 28%), flat within noise.
   Docker offline re-verified on the final engine: 3/3 samples, 0 rule errors.
+- Real-ad inputs (Purva's 70 JSON files, data/purva_inputs; images not received, so no pixel checks): 0 crashes, 0 rule
+  errors. Found and fixed: overlaps the source design makes on purpose (word-art behind a product) were counted as
+  collisions and shrank the hero (McDonald's "mmm" landscape hero share 0.09 -> 1.0). Also a size-readability gate now
+  runs before the hero gate so tiny banners keep readable headlines (worst case 55.9 -> 69.9). tools/report.py prints
+  consistency stats (worst case, 10th percentile, weakest sizes). Docker offline re-verified: 3/3, 0 rule errors.
 - The learned picker moves the engine measurably closer to the designers' coordinates (held-out distance 36.5 to 41.4
   on our 0 to 100 scale; the best candidate we generate would reach about 47), without improving the judged result.
 - The judges and designers are Claude models and the test designs are synthetic, so these are proxies for the hidden

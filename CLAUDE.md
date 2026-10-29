@@ -86,6 +86,8 @@ Which fields besides x/y/w/h/font_size may change; how to handle elements that c
 
 **Final stage (Oct 2026).** Picker retrained on 178 refs (held-out distance 33.2 vs 29.6 for the old pick; oracle 43.9). Blind judges on 46 held-out tasks (data/judgments/final1): engine 13, designer 33, i.e. about 28%, flat within noise. Docker rebuilt and run with --network none: 3/3 samples, 0 rule errors. Tests: tools/test_proposer.py, test_anchor.py, test_pixels.py, test_understand.py, fuzz.py, real_ads.py.
 
+**Real inputs + consistency (Oct 2026).** Purva sent 70 real-ad JSONs (14 ads x 5 sizes, in data/purva_inputs/designs; no image files yet). Engine: 0 crashes, 0 rule errors. Fixed: intentional source overlaps no longer penalised (mmm hero share 0.09 -> 1.0); size-readability gate before hero gate (320x50 worst case 55.9 -> 69.9). Q&A notes in docs/ORGANISER_NOTES.md (consistency across sizes matters most; standard social sizes first; unconfirmed whether dropping elements is allowed). Weakest: Story 1080x1920 and 300x50/320x50 banners (~82). Docker offline re-verified.
+
 **Deliverables done:** proposer slot, Docker re-run, README.md (organisers' original is STARTER_README.md). **Next options.** (1) More designer references (100+) to learn conventions and fit template parameters. (2) Tiny mobile banners and the logo in 728x90 banners are still too small. (3) Still waiting on organiser answers (see open questions).
 
 ## Commands
