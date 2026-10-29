@@ -98,8 +98,25 @@ def ford():
     return design(1920, 1080, els, [])
 
 
+def elf_collage():
+    boxes = [(10, 20, 110, 140), (120, 205, 100, 170), (240, 30, 135, 255), (385, 15, 70, 255), (480, 120, 100, 300),
+             (660, 40, 100, 150), (760, 85, 90, 110), (910, 490, 260, 260)]
+    els = [bg(1200, 800)] + [img(f"p{i}", PROD, *b) for i, b in enumerate(boxes)]
+    els += [img("logo", LOGO, 405, 540, 230, 210, z=5), txt("tag", "eyes lips face", 420, 755, 200, 20, bold=False, align="center")]
+    return design(1200, 800, els, [f"p{i}" for i in range(8)])
+
+
+def mmm_wordart():
+    els = [bg(1240, 697), img("b0", PROD, 70, 380, 360, 220), img("b1", PROD, 420, 290, 400, 320),
+           img("b2", PROD, 780, 370, 330, 230),
+           txt("m1", "m", 140, 150, 140, 230, color="rgba(255,190,0,1)"), txt("m2", "m", 290, 110, 190, 300, color="rgba(255,190,0,1)"),
+           txt("m3", "m", 480, 60, 260, 400, color="rgba(255,190,0,1)")]
+    return design(1240, 697, els, ["b0", "b1", "b2"])
+
+
 ADS = {"mcd_copyright_only": mcd(False), "mcd_with_labels": mcd(True), "heinz": heinz(), "ikea": ikea(),
-       "pizza": pizza(), "starbucks": starbucks(), "ford": ford()}
+       "pizza": pizza(), "starbucks": starbucks(), "ford": ford(), "elf_collage": elf_collage(),
+       "mmm_wordart": mmm_wordart()}
 TARGETS = [(1080, 1080), (1080, 1920), (1600, 400), (728, 90), (300, 250), (1200, 628)]
 
 

@@ -43,14 +43,32 @@ class Design:
     def by_role(self, role: str) -> list:
         return [u for u in self.units if u.role == role]
 
+    def hero_score(self, u) -> float:
+        """How much an image unit looks like the point of the ad: its share of the canvas, boosted when it is a
+        cut-out subject (transparent edges) and when it sits near the middle."""
+        W, H = self.canvas["width"], self.canvas["height"]
+        share = _area(u.bbox) / (W * H)
+        score = share ** 0.5
+        ids = [m.get("asset_id") for m in u.members if m["type"] == "image"]
+        try:
+            from engine import pixels
+            if any(pixels.is_cutout(i) for i in ids if i):
+                score *= 1.4
+        except Exception:
+            pass
+        cx, cy = (u.bbox[0] + u.bbox[2]) / 2, (u.bbox[1] + u.bbox[3]) / 2
+        off = (((cx - W / 2) / (W / 2)) ** 2 + ((cy - H / 2) / (H / 2)) ** 2) ** 0.5 / 1.414
+        return score * (0.7 + 0.3 * (1 - min(1.0, off)))
+
     def heroes(self) -> list:
-        """The spotlight: the biggest non-background image unit (a bundle or cluster counts as one) and any other
-        image unit at least half its size."""
+        """The spotlight: the image unit that most looks like the point of the ad (a bundle or cluster counts as one),
+        plus any other image unit at least 70% as spotlight-like."""
         imgs = [u for u in self.units if u.role in ("product", "image")]
         if not imgs:
             return []
-        big = max(_area(u.bbox) for u in imgs)
-        return [u for u in imgs if _area(u.bbox) >= 0.5 * big]
+        scores = {id(u): self.hero_score(u) for u in imgs}
+        top = max(scores.values())
+        return [u for u in imgs if scores[id(u)] >= 0.7 * top]
 
     def first(self, role: str):
         found = self.by_role(role)
@@ -69,6 +87,11 @@ def _fine_like(el: dict, W: float, H: float) -> bool:
     """Tiny text, or legal / web-address text that is small, is fine print however large it is next to nothing else."""
     rel = el["font_size"] / min(W, H)
     return rel < 0.017 or (bool(_FINE.search(str(el.get("content", "")))) and rel < 0.05)
+
+
+_CTA = re.compile(r"^\s*(shop|buy|order|get|learn|discover|visit|book|try|sign|join|call|find|explore|download|start|see|"
+                  r"subscribe|register|reserve|claim|save)\b", re.I)
+PRICE = re.compile(r"(€|\$|£|¥)\s?\d|\d+([.,]\d{1,2})?\s?(€|\$|£|¥)|\d+\s?%\s?(off|rabatt|desc)", re.I)
 
 
 def _is_upper(text: str) -> bool:
@@ -137,6 +160,46 @@ def _attach(units: list, canvas: dict) -> list:
             if halo or base:
                 merge(a, s)
                 acx, acy = (a.bbox[0] + a.bbox[2]) / 2, (a.bbox[1] + a.bbox[3]) / 2
+    return units
+
+
+def _text_bundles(units: list, canvas: dict) -> list:
+    """Text pieces that are really one piece of artwork become a single block that scales as a unit:
+    * lockups: boxes that overlap a lot and differ in size (staggered words like "express / your")
+    * word-art: short pieces (a letter or two) standing side by side on one line (letters that grow in size)
+    Normal stacked headlines and body copy are left alone so they can still re-wrap."""
+    pieces = [u for u in units if len(u.members) == 1 and u.members[0]["type"] == "text"
+              and u.role in ("headline", "supporting", "text") and not u.members[0].get("rotation")]
+
+    def tie(a, b):
+        ea, eb = a.members[0], b.members[0]
+        ia = max(0.0, min(a.bbox[2], b.bbox[2]) - max(a.bbox[0], b.bbox[0]))
+        ib = max(0.0, min(a.bbox[3], b.bbox[3]) - max(a.bbox[1], b.bbox[1]))
+        small = max(min(a.w * a.h, b.w * b.h), 1e-6)
+        ratio = max(ea["font_size"], eb["font_size"]) / max(min(ea["font_size"], eb["font_size"]), 1e-6)
+        if ia * ib / small >= 0.25 and ratio >= 1.3:
+            return True
+        short = len(str(ea.get("content", "")).strip()) <= 3 and len(str(eb.get("content", "")).strip()) <= 3
+        gap = max(a.bbox[0] - b.bbox[2], b.bbox[0] - a.bbox[2])
+        return bool(short and ib >= 0.6 * min(a.h, b.h) and gap <= 0.35 * max(ea["font_size"], eb["font_size"]))
+
+    changed = True
+    while changed:
+        changed = False
+        for i, a in enumerate(pieces):
+            for b in pieces[i + 1:]:
+                if tie(a, b):
+                    a.members += b.members
+                    a.bbox = _bbox(a.members)
+                    a.z = max(a.z, b.z)
+                    a.order = min(a.order, b.order)
+                    a.role = "image"
+                    units.remove(b)
+                    pieces.remove(b)
+                    changed = True
+                    break
+            if changed:
+                break
     return units
 
 
@@ -235,8 +298,9 @@ def understand(source: dict) -> Design:
         has_button = any(u.role == "cta" for u in units)
         for u in left:
             m = u.members[0]
-            if (not has_button and m.get("font_weight") == "bold" and m.get("color") != hc
-                    and u.order > head.order):
+            said_cta = bool(_CTA.search(str(m.get("content", "")))) and len(str(m.get("content", "")).split()) <= 6
+            if not has_button and u.order > head.order and (
+                    said_cta or (m.get("font_weight") == "bold" and m.get("color") != hc)):
                 u.role = "cta_text"
         ctas = [u for u in left if u.role == "cta_text"]
         for u in ctas[:-1]:
@@ -252,5 +316,6 @@ def understand(source: dict) -> Design:
         if u.role == "other":
             u.role = "group" if len(u.members) > 1 else "text"
         u.importance = IMPORTANCE.get(u.role, 0.5)
+    units = _text_bundles(units, canvas)
     units = _attach(units, canvas)
     return Design(canvas=canvas, units=units)

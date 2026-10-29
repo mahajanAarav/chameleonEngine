@@ -73,6 +73,9 @@ def _head_cap(design: Design, TW: float, TH: float) -> float:
 def _ratio(unit, el, head):
     """Font size relative to the headline. A plain-text button stays at least 60% of it."""
     r = max(0.15, min(0.9, el["font_size"] / head["font_size"]))
+    from engine.understand import PRICE
+    if PRICE.search(str(el.get("content", ""))) and len(str(el.get("content", "")).split()) <= 3:
+        r = max(r, 0.5)  # a price must not shrink into the small print
     return max(r, 0.6) if unit.role == "cta_text" else r
 
 

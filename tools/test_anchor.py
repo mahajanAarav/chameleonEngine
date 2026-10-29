@@ -67,9 +67,10 @@ def check_design(name, src, sheet, expect):
     found = bundles(src)
     ids = [sorted(m["id"] for m in u.members) for u in found]
     print(f"{name}: bundles detected: {ids}")
-    ok = ids == [sorted(expect)]
+    want = sorted(sorted(g) for g in (expect if expect and isinstance(expect[0], list) else [expect]))
+    ok = sorted(ids) == want
     if not ok:
-        print(f"   WRONG: expected exactly one bundle {sorted(expect)}")
+        print(f"   WRONG: expected bundles {want}")
     worst = 0.0
     for tw, th in TARGETS:
         out = resize(src, {"width": tw, "height": th})
@@ -100,8 +101,10 @@ def main():
     ap.add_argument("--sheet", default="")
     a = ap.parse_args()
     sheet = []
+    from tools.real_ads import ADS
     results = [check_design("burgers", burgers(), sheet, ["burger0", "burger1", "burger2", "bar"]),
-               check_design("aura", aura(), sheet, ["product", "aura", "shadow"])]
+               check_design("aura", aura(), sheet, ["product", "aura", "shadow"]),
+               check_design("word-art", ADS["mmm_wordart"]["source"], sheet, [["b0", "b1", "b2"], ["m1", "m2", "m3"]])]
     if a.sheet:
         from pathlib import Path
 

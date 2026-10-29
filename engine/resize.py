@@ -41,6 +41,7 @@ def _round(el: dict) -> dict:
 
 
 OVERLAP_OK = 0.85  # overlap term at or above this counts as collision-free
+COLLAGE_MIN = 4  # this many separate pictures (not touching) make a collage
 HERO_FRAC = 0.5  # the spotlight must keep at least this fraction of the best share any clean layout gives it
 HERO_FRAC_DOMINANT = 0.8  # ... and this much when it dominates the source design (the point of the ad)
 HERO_DOMINANT_SHARE = 0.33  # a spotlight covering at least this share of the source canvas counts as dominant
@@ -62,14 +63,17 @@ def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
 
     design = understand(source)
     templates = [(layout_spread, SPREAD_PARAMS)]
-    if tw / th >= 2.5:
-        templates.append((layout_row, ROW_PARAMS + ROW_TIGHT_PARAMS))
-    if tw / th <= 1.6:
-        templates.append((layout_stack, STACK_PARAMS + STACK_TIGHT_PARAMS))
-        templates.append((layout_stack_grow, GROW_STACK_PARAMS))
-    if 1.0 <= tw / th <= 3.0:
-        templates.append((layout_split, SPLIT_PARAMS + SPLIT_WIDE_PARAMS))
-        templates.append((layout_split_grow, GROW_SPLIT_PARAMS))
+    # a collage (several separate pictures) only works as its original composition, scaled
+    collage = len([u for u in design.units if u.role in ("product", "image")]) >= COLLAGE_MIN
+    if not collage:
+        if tw / th >= 2.5:
+            templates.append((layout_row, ROW_PARAMS + ROW_TIGHT_PARAMS))
+        if tw / th <= 1.6:
+            templates.append((layout_stack, STACK_PARAMS + STACK_TIGHT_PARAMS))
+            templates.append((layout_stack_grow, GROW_STACK_PARAMS))
+        if 1.0 <= tw / th <= 3.0:
+            templates.append((layout_split, SPLIT_PARAMS + SPLIT_WIDE_PARAMS))
+            templates.append((layout_split_grow, GROW_SPLIT_PARAMS))
     ids = {e["id"] for e in source["elements"]}
     for fn, params in templates:
         for pi, P in enumerate(params):
