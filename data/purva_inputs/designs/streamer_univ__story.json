@@ -1,0 +1,86 @@
+{
+  "task_id": "streamer_univ__story",
+  "difficulty": "custom_real_ad",
+  "difficulty_label": "Custom: real ad converted to layers",
+  "notes": "Busy photo poster, subject standing behind a rotated title stack. Text on a busy image. Level 3.",
+  "source": {
+    "canvas": {
+      "width": 1080,
+      "height": 1346
+    },
+    "elements": [
+      {
+        "id": "bg",
+        "type": "image",
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 1346,
+        "z_index": 0,
+        "asset_id": "streamer_univ_bg.png",
+        "fit": "cover"
+      },
+      {
+        "id": "title",
+        "type": "text",
+        "x": 125.2,
+        "y": 725.2,
+        "width": 824.3,
+        "height": 349.6,
+        "z_index": 4,
+        "content": "STREAMER UNIVERSITY",
+        "font_family": "Solstice Sans",
+        "font_size": 114.8,
+        "font_weight": "bold",
+        "font_style": "normal",
+        "color": "rgba(242,168,58,1)",
+        "text_align": "center",
+        "line_height": 1.05,
+        "rotation": -6,
+        "group_id": "lockup"
+      },
+      {
+        "id": "date",
+        "type": "text",
+        "x": 240.0,
+        "y": 1001.7,
+        "width": 589.6,
+        "height": 93.9,
+        "z_index": 4,
+        "content": "LIVE ON MAY 22ND",
+        "font_family": "Solstice Serif",
+        "font_size": 52.2,
+        "font_weight": "bold",
+        "font_style": "normal",
+        "color": "rgba(255,255,255,1)",
+        "text_align": "center",
+        "line_height": 1.2,
+        "rotation": -6,
+        "group_id": "lockup"
+      },
+      {
+        "id": "link",
+        "type": "text",
+        "x": 271.3,
+        "y": 1090.4,
+        "width": 537.4,
+        "height": 57.4,
+        "z_index": 4,
+        "content": "TWITCH.TV/BLASIANBABYLOLAA",
+        "font_family": "Solstice Serif",
+        "font_size": 26.1,
+        "font_weight": "bold",
+        "font_style": "normal",
+        "color": "rgba(242,168,58,1)",
+        "text_align": "center",
+        "line_height": 1.2,
+        "rotation": -6,
+        "group_id": "lockup"
+      }
+    ]
+  },
+  "target_canvas": {
+    "width": 1080,
+    "height": 1920
+  }
+}

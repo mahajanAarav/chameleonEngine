@@ -1,0 +1,81 @@
+{
+  "task_id": "kai_sza__medium_rect",
+  "difficulty": "custom_real_ad",
+  "difficulty_label": "Custom: real ad converted to layers",
+  "notes": "Event poster: framed photo on cream, kicker on top, chunky title over people + grass, date below. Level 2-3.",
+  "source": {
+    "canvas": {
+      "width": 1080,
+      "height": 1349
+    },
+    "elements": [
+      {
+        "id": "bg",
+        "type": "image",
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 1349,
+        "z_index": 0,
+        "asset_id": "kai_sza_bg.png",
+        "fit": "cover"
+      },
+      {
+        "id": "kicker",
+        "type": "text",
+        "x": 411.2,
+        "y": 21.9,
+        "width": 263.1,
+        "height": 43.9,
+        "z_index": 4,
+        "content": "MAFIATHON 2",
+        "font_family": "Solstice Sans",
+        "font_size": 27.4,
+        "font_weight": "bold",
+        "font_style": "normal",
+        "color": "rgba(105,105,105,1)",
+        "text_align": "center",
+        "line_height": 1.2,
+        "letter_spacing": 3.3
+      },
+      {
+        "id": "title",
+        "type": "text",
+        "x": 98.7,
+        "y": 822.3,
+        "width": 893.6,
+        "height": 279.6,
+        "z_index": 4,
+        "content": "KAI x SZA",
+        "font_family": "Solstice Sans",
+        "font_size": 137.1,
+        "font_weight": "bold",
+        "font_style": "normal",
+        "color": "rgba(228,182,88,1)",
+        "text_align": "center",
+        "line_height": 1.0
+      },
+      {
+        "id": "date",
+        "type": "text",
+        "x": 405.7,
+        "y": 1123.9,
+        "width": 268.6,
+        "height": 76.8,
+        "z_index": 4,
+        "content": "TODAY",
+        "font_family": "Solstice Sans",
+        "font_size": 60.3,
+        "font_weight": "bold",
+        "font_style": "normal",
+        "color": "rgba(255,255,255,1)",
+        "text_align": "center",
+        "line_height": 1.2
+      }
+    ]
+  },
+  "target_canvas": {
+    "width": 300,
+    "height": 250
+  }
+}

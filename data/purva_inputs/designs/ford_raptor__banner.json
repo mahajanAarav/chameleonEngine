@@ -1,0 +1,77 @@
+{
+  "task_id": "ford_raptor__banner",
+  "difficulty": "custom_real_ad",
+  "difficulty_label": "Custom: real ad converted to layers",
+  "notes": "Wide photo ad: product baked into the scene (right), logo + headline + long body copy bottom-left over a busy photo. Level 2.",
+  "source": {
+    "canvas": {
+      "width": 1920,
+      "height": 1085
+    },
+    "elements": [
+      {
+        "id": "bg",
+        "type": "image",
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1085,
+        "z_index": 0,
+        "asset_id": "ford_raptor_bg.png",
+        "fit": "cover"
+      },
+      {
+        "id": "logo",
+        "type": "image",
+        "x": 51.8,
+        "y": 768.0,
+        "width": 219,
+        "height": 82,
+        "z_index": 4,
+        "asset_id": "ford_raptor_logo.png",
+        "fit": "contain",
+        "group_id": "copy"
+      },
+      {
+        "id": "headline",
+        "type": "text",
+        "x": 45.7,
+        "y": 859.4,
+        "width": 719.2,
+        "height": 79.2,
+        "z_index": 4,
+        "content": "AnyWhere, AnyTime",
+        "font_family": "Solstice Sans",
+        "font_size": 57.9,
+        "font_weight": "bold",
+        "font_style": "normal",
+        "color": "rgba(255,255,255,1)",
+        "text_align": "left",
+        "line_height": 1.2,
+        "group_id": "copy"
+      },
+      {
+        "id": "body",
+        "type": "text",
+        "x": 45.7,
+        "y": 947.8,
+        "width": 1005.7,
+        "height": 97.5,
+        "z_index": 4,
+        "content": "Watch our most impressive F-150 Raptor adapt to all nature conditions - (desert, jungle and Snow). Equipped with a high-powered 3.5-liter EcoBoost engine and Terrain Management System, the F-150 Raptor takes on all obstacles, taking it to a frightening new level",
+        "font_family": "Solstice Sans",
+        "font_size": 19.8,
+        "font_weight": "regular",
+        "font_style": "normal",
+        "color": "rgba(255,255,255,0.9)",
+        "text_align": "left",
+        "line_height": 1.2,
+        "group_id": "copy"
+      }
+    ]
+  },
+  "target_canvas": {
+    "width": 1600,
+    "height": 400
+  }
+}

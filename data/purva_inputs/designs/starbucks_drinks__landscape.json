@@ -1,0 +1,51 @@
+{
+  "task_id": "starbucks_drinks__landscape",
+  "difficulty": "custom_real_ad",
+  "difficulty_label": "Custom: real ad converted to layers",
+  "notes": "Wide product shot with ZERO text: just a product group and a small corner logo. Edge case. Level 1.",
+  "source": {
+    "canvas": {
+      "width": 1920,
+      "height": 1085
+    },
+    "elements": [
+      {
+        "id": "bg",
+        "type": "image",
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1085,
+        "z_index": 0,
+        "asset_id": "starbucks_drinks_bg.png",
+        "fit": "cover"
+      },
+      {
+        "id": "product",
+        "type": "image",
+        "x": 512.3,
+        "y": 277.0,
+        "width": 930,
+        "height": 691,
+        "z_index": 2,
+        "asset_id": "starbucks_drinks_product.png",
+        "fit": "contain"
+      },
+      {
+        "id": "logo",
+        "type": "image",
+        "x": 1734.1,
+        "y": 49.3,
+        "width": 137,
+        "height": 137,
+        "z_index": 4,
+        "asset_id": "starbucks_drinks_logo.png",
+        "fit": "contain"
+      }
+    ]
+  },
+  "target_canvas": {
+    "width": 1920,
+    "height": 1080
+  }
+}

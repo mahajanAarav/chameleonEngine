@@ -1,0 +1,85 @@
+{
+  "task_id": "pizzahut_tower__banner",
+  "difficulty": "custom_real_ad",
+  "difficulty_label": "Custom: real ad converted to layers",
+  "notes": "Portrait: headline top, tall product stack center-left, logo bottom-right, tagline bottom. Level 1-2.",
+  "source": {
+    "canvas": {
+      "width": 1082,
+      "height": 1572
+    },
+    "elements": [
+      {
+        "id": "bg",
+        "type": "image",
+        "x": 0,
+        "y": 0,
+        "width": 1082,
+        "height": 1572,
+        "z_index": 0,
+        "asset_id": "pizzahut_tower_bg.png",
+        "fit": "cover"
+      },
+      {
+        "id": "product",
+        "type": "image",
+        "x": 138.3,
+        "y": 468.9,
+        "width": 625,
+        "height": 1004,
+        "z_index": 2,
+        "asset_id": "pizzahut_tower_product.png",
+        "fit": "contain"
+      },
+      {
+        "id": "logo",
+        "type": "image",
+        "x": 757.4,
+        "y": 1166.2,
+        "width": 240,
+        "height": 234,
+        "z_index": 4,
+        "asset_id": "pizzahut_tower_logo.png",
+        "fit": "contain"
+      },
+      {
+        "id": "headline",
+        "type": "text",
+        "x": 132.3,
+        "y": 162.3,
+        "width": 829.6,
+        "height": 174.3,
+        "z_index": 4,
+        "content": "See the Leaning Tower of Pizza",
+        "font_family": "Solstice Serif",
+        "font_size": 75.1,
+        "font_weight": "bold",
+        "font_style": "italic",
+        "color": "rgba(255,255,255,1)",
+        "text_align": "left",
+        "line_height": 1.15
+      },
+      {
+        "id": "tagline",
+        "type": "text",
+        "x": 541.0,
+        "y": 1466.8,
+        "width": 523.0,
+        "height": 54.1,
+        "z_index": 4,
+        "content": "Visit the Italian places now...",
+        "font_family": "Solstice Serif",
+        "font_size": 30.1,
+        "font_weight": "bold",
+        "font_style": "italic",
+        "color": "rgba(255,255,255,0.9)",
+        "text_align": "right",
+        "line_height": 1.2
+      }
+    ]
+  },
+  "target_canvas": {
+    "width": 1600,
+    "height": 400
+  }
+}

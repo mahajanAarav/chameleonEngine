@@ -1,0 +1,68 @@
+{
+  "task_id": "heinz_ketchup__landscape",
+  "difficulty": "custom_real_ad",
+  "difficulty_label": "Custom: real ad converted to layers",
+  "notes": "Tall hero product on the left running nearly full height, headline top-right, logo bottom-right. Level 2.",
+  "source": {
+    "canvas": {
+      "width": 1080,
+      "height": 1546
+    },
+    "elements": [
+      {
+        "id": "bg",
+        "type": "image",
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 1546,
+        "z_index": 0,
+        "asset_id": "heinz_ketchup_bg.png",
+        "fit": "cover"
+      },
+      {
+        "id": "product",
+        "type": "image",
+        "x": 45.6,
+        "y": 15.2,
+        "width": 482,
+        "height": 1516,
+        "z_index": 2,
+        "asset_id": "heinz_ketchup_product.png",
+        "fit": "contain"
+      },
+      {
+        "id": "logo",
+        "type": "image",
+        "x": 573.0,
+        "y": 1298.0,
+        "width": 406,
+        "height": 132,
+        "z_index": 4,
+        "asset_id": "heinz_ketchup_logo.png",
+        "fit": "contain"
+      },
+      {
+        "id": "headline",
+        "type": "text",
+        "x": 471.5,
+        "y": 147.0,
+        "width": 598.3,
+        "height": 324.5,
+        "z_index": 4,
+        "content": "No one grows ketchup like Heinz.",
+        "font_family": "Solstice Sans",
+        "font_size": 71.0,
+        "font_weight": "bold",
+        "font_style": "normal",
+        "color": "rgba(255,255,255,1)",
+        "text_align": "center",
+        "line_height": 1.15
+      }
+    ]
+  },
+  "target_canvas": {
+    "width": 1920,
+    "height": 1080
+  }
+}

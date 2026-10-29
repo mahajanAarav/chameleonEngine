@@ -1,0 +1,70 @@
+{
+  "task_id": "mcd_mmm__banner",
+  "difficulty": "custom_real_ad",
+  "difficulty_label": "Custom: real ad converted to layers",
+  "notes": "Wide hero: giant rotated word sits BEHIND the burgers (intentional overlap), burgers on a red shelf. Level 2-3.",
+  "source": {
+    "canvas": {
+      "width": 1909,
+      "height": 1075
+    },
+    "elements": [
+      {
+        "id": "bg",
+        "type": "image",
+        "x": 0,
+        "y": 0,
+        "width": 1909,
+        "height": 1075,
+        "z_index": 0,
+        "asset_id": "mcd_mmm_bg.png",
+        "fit": "cover"
+      },
+      {
+        "id": "burgers",
+        "type": "image",
+        "x": 96.3,
+        "y": 443.9,
+        "width": 1615,
+        "height": 487,
+        "z_index": 3,
+        "asset_id": "mcd_mmm_burgers.png",
+        "fit": "contain"
+      },
+      {
+        "id": "shelf",
+        "type": "shape",
+        "x": 0.0,
+        "y": 909.2,
+        "width": 1909.3,
+        "height": 165.8,
+        "z_index": 2,
+        "shape_type": "rectangle",
+        "fill_color": "rgba(185,48,34,1)",
+        "corner_radius": 0.0
+      },
+      {
+        "id": "headline",
+        "type": "text",
+        "x": 0.0,
+        "y": 42.8,
+        "width": 1909.3,
+        "height": 574.9,
+        "z_index": 1,
+        "content": "‘mmm’",
+        "font_family": "Solstice Sans",
+        "font_size": 476.0,
+        "font_weight": "bold",
+        "font_style": "normal",
+        "color": "rgba(244,186,58,1)",
+        "text_align": "center",
+        "line_height": 1.0,
+        "rotation": -6
+      }
+    ]
+  },
+  "target_canvas": {
+    "width": 1600,
+    "height": 400
+  }
+}

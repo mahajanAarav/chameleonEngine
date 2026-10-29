@@ -1,0 +1,47 @@
+{
+  "task_id": "sephora_faces__landscape",
+  "difficulty": "custom_real_ad",
+  "difficulty_label": "Custom: real ad converted to layers",
+  "notes": "Wide crowd photo full-bleed, one huge letter-spaced wordmark across faces. Faces everywhere = no safe text zone. Level 3.",
+  "source": {
+    "canvas": {
+      "width": 1920,
+      "height": 1007
+    },
+    "elements": [
+      {
+        "id": "bg",
+        "type": "image",
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1007,
+        "z_index": 0,
+        "asset_id": "sephora_faces_bg.png",
+        "fit": "cover"
+      },
+      {
+        "id": "wordmark",
+        "type": "text",
+        "x": 76.3,
+        "y": 393.4,
+        "width": 1790.8,
+        "height": 240.7,
+        "z_index": 4,
+        "content": "SEPHORA",
+        "font_family": "Solstice Sans",
+        "font_size": 217.2,
+        "font_weight": "regular",
+        "font_style": "normal",
+        "color": "rgba(255,255,255,1)",
+        "text_align": "center",
+        "line_height": 1.0,
+        "letter_spacing": 117.4
+      }
+    ]
+  },
+  "target_canvas": {
+    "width": 1920,
+    "height": 1080
+  }
+}

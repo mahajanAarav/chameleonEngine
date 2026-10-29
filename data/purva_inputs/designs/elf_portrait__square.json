@@ -1,0 +1,95 @@
+{
+  "task_id": "elf_portrait__square",
+  "difficulty": "custom_real_ad",
+  "difficulty_label": "Custom: real ad converted to layers",
+  "notes": "Full-bleed portrait photo, grouped lockup at the bottom over hands/shirt. Subject touches every edge. Level 1-2.",
+  "source": {
+    "canvas": {
+      "width": 1075,
+      "height": 1615
+    },
+    "elements": [
+      {
+        "id": "bg",
+        "type": "image",
+        "x": 0,
+        "y": 0,
+        "width": 1075,
+        "height": 1615,
+        "z_index": 0,
+        "asset_id": "elf_portrait_bg.png",
+        "fit": "cover"
+      },
+      {
+        "id": "express",
+        "type": "text",
+        "x": 54.2,
+        "y": 1256.2,
+        "width": 465.4,
+        "height": 94.9,
+        "z_index": 4,
+        "content": "express",
+        "font_family": "Solstice Sans",
+        "font_size": 94.9,
+        "font_weight": "bold",
+        "font_style": "italic",
+        "color": "rgba(255,255,255,1)",
+        "text_align": "left",
+        "line_height": 1.2,
+        "group_id": "lockup"
+      },
+      {
+        "id": "your",
+        "type": "text",
+        "x": 329.9,
+        "y": 1342.1,
+        "width": 357.0,
+        "height": 135.6,
+        "z_index": 4,
+        "content": "your",
+        "font_family": "Solstice Sans",
+        "font_size": 135.6,
+        "font_weight": "bold",
+        "font_style": "italic",
+        "color": "rgba(255,255,255,1)",
+        "text_align": "left",
+        "line_height": 1.2,
+        "group_id": "lockup"
+      },
+      {
+        "id": "logo",
+        "type": "image",
+        "x": 723.0,
+        "y": 1272.1,
+        "width": 289,
+        "height": 200,
+        "z_index": 4,
+        "asset_id": "elf_logo_white.png",
+        "fit": "contain",
+        "group_id": "lockup"
+      },
+      {
+        "id": "tagline",
+        "type": "text",
+        "x": 718.5,
+        "y": 1513.8,
+        "width": 302.8,
+        "height": 49.7,
+        "z_index": 4,
+        "content": "eyes.lips.face.",
+        "font_family": "Solstice Sans",
+        "font_size": 40.7,
+        "font_weight": "regular",
+        "font_style": "normal",
+        "color": "rgba(255,255,255,1)",
+        "text_align": "left",
+        "line_height": 1.2,
+        "group_id": "lockup"
+      }
+    ]
+  },
+  "target_canvas": {
+    "width": 1080,
+    "height": 1080
+  }
+}

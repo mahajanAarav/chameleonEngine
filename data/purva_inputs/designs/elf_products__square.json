@@ -1,0 +1,145 @@
+{
+  "task_id": "elf_products__square",
+  "difficulty": "custom_real_ad",
+  "difficulty_label": "Custom: real ad converted to layers",
+  "notes": "Product collage: 8 cut-out images on a diagonal 3-color background, center logo + tagline. Many images, lots of overlap risk. Level 3.",
+  "source": {
+    "canvas": {
+      "width": 1615,
+      "height": 1080
+    },
+    "elements": [
+      {
+        "id": "bg",
+        "type": "image",
+        "x": 0,
+        "y": 0,
+        "width": 1615,
+        "height": 1080,
+        "z_index": 0,
+        "asset_id": "elf_products_bg.png",
+        "fit": "cover"
+      },
+      {
+        "id": "sunscreen",
+        "type": "image",
+        "x": 14.7,
+        "y": 24.5,
+        "width": 216,
+        "height": 447,
+        "z_index": 2,
+        "asset_id": "elf_products_sunscreen.png",
+        "fit": "contain"
+      },
+      {
+        "id": "cc_cream",
+        "type": "image",
+        "x": 216.0,
+        "y": 284.7,
+        "width": 221,
+        "height": 756,
+        "z_index": 3,
+        "asset_id": "elf_products_cc_cream.png",
+        "fit": "contain"
+      },
+      {
+        "id": "halo_glow",
+        "type": "image",
+        "x": 451.6,
+        "y": 68.7,
+        "width": 196,
+        "height": 599,
+        "z_index": 2,
+        "asset_id": "elf_products_halo_glow.png",
+        "fit": "contain"
+      },
+      {
+        "id": "concealer",
+        "type": "image",
+        "x": 706.9,
+        "y": 24.5,
+        "width": 191,
+        "height": 648,
+        "z_index": 3,
+        "asset_id": "elf_products_concealer.png",
+        "fit": "contain"
+      },
+      {
+        "id": "primer",
+        "type": "image",
+        "x": 913.1,
+        "y": 279.8,
+        "width": 241,
+        "height": 766,
+        "z_index": 2,
+        "asset_id": "elf_products_primer.png",
+        "fit": "contain"
+      },
+      {
+        "id": "lip_oil",
+        "type": "image",
+        "x": 1229.7,
+        "y": 54.0,
+        "width": 147,
+        "height": 422,
+        "z_index": 3,
+        "asset_id": "elf_products_lip_oil.png",
+        "fit": "contain"
+      },
+      {
+        "id": "lip_wand",
+        "type": "image",
+        "x": 1421.2,
+        "y": 29.5,
+        "width": 157,
+        "height": 447,
+        "z_index": 2,
+        "asset_id": "elf_products_lip_wand.png",
+        "fit": "contain"
+      },
+      {
+        "id": "football",
+        "type": "image",
+        "x": 1217.5,
+        "y": 652.9,
+        "width": 363,
+        "height": 368,
+        "z_index": 3,
+        "asset_id": "elf_products_football.png",
+        "fit": "contain"
+      },
+      {
+        "id": "logo",
+        "type": "image",
+        "x": 540.0,
+        "y": 726.5,
+        "width": 314,
+        "height": 206,
+        "z_index": 4,
+        "asset_id": "elf_products_logo.png",
+        "fit": "contain"
+      },
+      {
+        "id": "tagline",
+        "type": "text",
+        "x": 554.7,
+        "y": 986.7,
+        "width": 284.7,
+        "height": 54.0,
+        "z_index": 4,
+        "content": "eyes lips face",
+        "font_family": "Solstice Sans",
+        "font_size": 34.4,
+        "font_weight": "regular",
+        "font_style": "normal",
+        "color": "rgba(80,80,80,1)",
+        "text_align": "center",
+        "line_height": 1.2
+      }
+    ]
+  },
+  "target_canvas": {
+    "width": 1080,
+    "height": 1080
+  }
+}
