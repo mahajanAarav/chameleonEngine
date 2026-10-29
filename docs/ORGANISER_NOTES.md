@@ -23,3 +23,13 @@
 - Never crashes: the safety net is always a candidate and any error falls back to it.
 - Swappable model slot with safeguards (geometry only, same rule checks as our own layouts).
 - Honest numbers: see `README.md`, "Honest status".
+
+## Q&A notes (compiled by the team, from the organisers' session)
+- Consistency across ALL target sizes beats one great result and the rest distorted.
+- Cover the normal social-media shapes first (that is roughly 60-70% of the score); tricky and very custom shapes after.
+- Local models: fine to host weights on Hugging Face for the graders to download. Build the engine to work with ANY
+  model (the graders will swap models in); if it is small and swappable there is a bonus. Do not spend time on large
+  models or heavy fine-tuning. (Our proposer slot in engine/proposer.py is built for this.)
+- Tricky shapes: cropping that loses structure is only beginner-pass level and is penalised.
+- UNCONFIRMED: not every element is equally important, so dropping an irrelevant one MAY be allowed if needed. This
+  conflicts with our hard rule "nothing added, removed or hidden" (CLAUDE.md). Do not change the rule until confirmed.
