@@ -58,10 +58,7 @@ def _fit_unit(unit: list[dict], tw: float, th: float) -> None:
     x1 = max(b[2] for b in boxes)
     y1 = max(b[3] for b in boxes)
     bw, bh = x1 - x0, y1 - y0
-    if bw <= EPS or bh <= EPS:
-        k = 1.0
-    else:
-        k = min(1.0, tw / bw, th / bh)
+    k = min(1.0, tw / bw if bw > EPS else 1.0, th / bh if bh > EPS else 1.0)
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
     ncx = min(max(cx, bw * k / 2), tw - bw * k / 2)
     ncy = min(max(cy, bh * k / 2), th - bh * k / 2)

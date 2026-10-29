@@ -42,7 +42,7 @@ text widths can differ by fractions of a pixel and near-tied layouts can flip; b
    keep a clearly visible logo whenever any candidate can. Among those, a **learned picker** chooses the layout
    predicted to be closest to what a designer would make (a ridge regression, `engine/regressor.json`, trained on
    124 designer reference layouts in `data/refs/`). If numpy or the file is missing, a hand-set quality score is used.
-5. **Never fail** (`engine/safety.py`). The uniform-scale safety net is always one of the candidates, and any error
+5. **Never fail** (`engine/safety.py`, `engine/finalize.py`). A final repair pass fixes any text or shape that still breaks a rule (a long word wider than its box, text taller than the canvas, rotated text, zero-size shapes). The uniform-scale safety net is always one of the candidates, and any error
    anywhere falls back to it (and, as a last resort, to the starter's stretch), so output is always valid.
 
 ## Swappable models
@@ -69,6 +69,7 @@ garbage are ignored. Tested in `tools/test_proposer.py` with hostile and mock mo
 | `python -m tools.report` | Scores the engine on the official samples plus generated designs (train and held-out) across 25 real platform sizes; counts rule breaks |
 | `python -m tools.test_proposer` | Tests for the swappable model slot |
 | `python -m tools.real_ads --sheet out.png` | Look-alikes of real brand ads (McDonald's, Heinz, IKEA, Pizza Hut, Starbucks, Ford): hero share kept, text growth, rule errors |
+| `python -m tools.fuzz -n 300` | Throws odd designs (no logo, empty or huge text, rotated and zero-size elements, tiny canvases) at the engine: 0 crashes, about 1% unavoidable rule errors |
 | `python -m tools.test_anchor` | Checks that things that belong together (bar under products, aura behind, image clusters) stay together |
 | `python -m tools.test_understand` | Role-detection accuracy against the answer key |
 | `python -m tools.ref_report --refs data/refs --split heldout --pairs DIR` | Blind A/B images of the engine against designer reference layouts |

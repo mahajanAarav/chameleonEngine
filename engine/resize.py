@@ -56,7 +56,9 @@ def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
 
     tw, th = target_canvas["width"], target_canvas["height"]
     canvas = {"width": tw, "height": th}
-    cands = [("safety", safety_resize(source, target_canvas))]
+    from engine.finalize import finalize
+
+    cands = [("safety", finalize(safety_resize(source, target_canvas)))]
 
     design = understand(source)
     templates = [(layout_spread, SPREAD_PARAMS)]
@@ -134,11 +136,13 @@ def resize(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
     their aspect ratio, text content/font family untouched, no pixel changes.
     Never raises: falls back to simpler strategies on any error.
     """
+    from engine.finalize import finalize
+
     try:
-        return _smart(source, target_canvas)
+        return finalize(_smart(source, target_canvas))
     except Exception:
         pass
     try:
-        return safety_resize(source, target_canvas)
+        return finalize(safety_resize(source, target_canvas))
     except Exception:
         return _baseline_stretch(source, target_canvas)
