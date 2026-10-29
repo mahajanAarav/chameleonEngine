@@ -57,6 +57,70 @@ def _is_upper(text: str) -> bool:
     return bool(letters) and all(c.isupper() for c in letters)
 
 
+def _area(b):
+    return max(0.0, b[2] - b[0]) * max(0.0, b[3] - b[1])
+
+
+def _attach(units: list, canvas: dict) -> list:
+    """Bundle things that visually belong together, from geometry alone.
+
+    * cluster : images that touch or sit within ~3% of each other side by side (e.g. three burgers)
+    * halo    : a shape or image BEHIND an image that contains its centre (an aura, a glow)
+    * base    : a shape or image behind an image, directly under it (a bar the product stands on, a shadow)
+    The bundle keeps the anchor's role, moves and scales as one unit, so relative position and size survive.
+    """
+    m = min(canvas["width"], canvas["height"])
+    free = lambda u: len(u.members) == 1 and u.members[0]["type"] in ("shape", "image") and u.role in (
+        "decoration", "shape", "image", "product")
+    gap = 0.03 * m
+
+    def merge(a, b):
+        a.members += b.members
+        a.bbox = _bbox(a.members)
+        a.z = max(a.z, b.z)
+        a.order = min(a.order, b.order)
+        units.remove(b)
+
+    # 1. clusters of touching images
+    changed = True
+    while changed:
+        changed = False
+        imgs = [u for u in units if u.role in ("product", "image") and all(m["type"] == "image" for m in u.members)]
+        for i, a in enumerate(imgs):
+            for b in imgs[i + 1:]:
+                dx = max(a.bbox[0] - b.bbox[2], b.bbox[0] - a.bbox[2])
+                dy = max(a.bbox[1] - b.bbox[3], b.bbox[1] - a.bbox[3])
+                v_overlap = min(a.bbox[3], b.bbox[3]) - max(a.bbox[1], b.bbox[1])
+                if dx <= gap and dy <= 0 and v_overlap >= 0.5 * min(a.h, b.h):
+                    big = a if _area(a.bbox) >= _area(b.bbox) else b
+                    small = b if big is a else a
+                    merge(big, small)
+                    changed = True
+                    break
+            if changed:
+                break
+
+    # 2. halos and bases behind an anchor image
+    anchors = [u for u in units if u.role in ("product", "image") and u.members[0]["type"] == "image"]
+    for a in anchors:
+        acx, acy = (a.bbox[0] + a.bbox[2]) / 2, (a.bbox[1] + a.bbox[3]) / 2
+        for s in list(units):
+            if s is a or not free(s) or s.role == "product" or s.z > a.z:
+                continue
+            sb = s.bbox
+            if s.members[0]["type"] == "image" and s.role == "image" and _area(sb) >= _area(a.bbox):
+                continue  # a bigger image is not an accessory of a smaller one
+            ratio = _area(sb) / max(_area(a.bbox), 1e-6)
+            halo = sb[0] <= acx <= sb[2] and sb[1] <= acy <= sb[3] and 0.5 <= ratio <= 8
+            h_over = min(sb[2], a.bbox[2]) - max(sb[0], a.bbox[0])
+            base = (h_over >= 0.6 * min(sb[2] - sb[0], a.w) and acy <= sb[1] <= a.bbox[3] + 0.06 * m
+                    and sb[3] >= a.bbox[3] - 0.05 * a.h and sb[3] - sb[1] <= 1.2 * a.h)
+            if halo or base:
+                merge(a, s)
+                acx, acy = (a.bbox[0] + a.bbox[2]) / 2, (a.bbox[1] + a.bbox[3]) / 2
+    return units
+
+
 def understand(source: dict) -> Design:
     canvas = source["canvas"]
     W, H = canvas["width"], canvas["height"]
@@ -163,4 +227,5 @@ def understand(source: dict) -> Design:
         if u.role == "other":
             u.role = "group" if len(u.members) > 1 else "text"
         u.importance = IMPORTANCE.get(u.role, 0.5)
+    units = _attach(units, canvas)
     return Design(canvas=canvas, units=units)

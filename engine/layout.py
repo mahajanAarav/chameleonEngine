@@ -33,6 +33,15 @@ def _image(unit, h_max, w_max):
     return e
 
 
+def _media(unit, h_max, w_max):
+    """An image unit as a list of elements. A bundle (image + its bar/aura/shadow, or a cluster of images) is scaled
+    as one block so the parts keep their relative position and size."""
+    if len(unit.members) == 1:
+        return [_image(unit, h_max, w_max)]
+    k = min(w_max / max(unit.w, 1e-6), h_max / max(unit.h, 1e-6))
+    return _xform(unit, k, 0, 0)
+
+
 def _pill(unit, h):
     """Rounded shape + one label, rebuilt at height h (label font from h, width from the label)."""
     shape = next(m for m in unit.members if m["type"] == "shape")
@@ -181,8 +190,7 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
         cols.append(_col([e]))
     for u in by("product") + by("image"):
         full = bool(P.get("fullh")) and u.role == "product"
-        e = _image(u, ((TH - 2 * pad) if full else ch) * P["prod"], 0.3 * TW * P.get("wcap", 1.0))
-        c = _col([e])
+        c = _col(_media(u, ((TH - 2 * pad) if full else ch) * P["prod"], 0.3 * TW * P.get("wcap", 1.0)))
         c["full"] = full
         cols.append(c)
 
@@ -404,7 +412,7 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
             items.append(_col(_xform(u, k, 0, 0)))
     if "product" in parts:
         for u in by("product") + by("image"):
-            items.append(_col([_image(u, P["prod"] * H, P.get("pw", 0.85) * Wc)]))
+            items.append(_col(_media(u, P["prod"] * H, P.get("pw", 0.85) * Wc)))
 
     text_at, texts_src = None, []
     if "text" in parts:

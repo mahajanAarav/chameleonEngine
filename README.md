@@ -24,7 +24,7 @@ text widths can differ by fractions of a pixel and near-tied layouts can flip; b
 
 ## How it works
 
-1. **Understand** (`engine/understand.py`). Groups elements into units (a pill and its label move as one) and
+1. **Understand** (`engine/understand.py`). Groups elements into units (a pill and its label move as one; a bar under a product, an aura behind it, or a cluster of touching images are bundled by geometry too) and
    labels each unit from geometry and style only, never from ids: background, logo, product, headline, supporting
    text, button, badges, ribbon, decoration, watermark, fine print. It also derives reading order and importance.
 2. **Measure text exactly** (`engine/textmeasure.py`, `textfit.py`). Uses the renderer's own glyph widths and
@@ -68,6 +68,7 @@ garbage are ignored. Tested in `tools/test_proposer.py` with hostile and mock mo
 |---|---|
 | `python -m tools.report` | Scores the engine on the official samples plus generated designs (train and held-out) across 25 real platform sizes; counts rule breaks |
 | `python -m tools.test_proposer` | Tests for the swappable model slot |
+| `python -m tools.test_anchor` | Checks that things that belong together (bar under products, aura behind, image clusters) stay together |
 | `python -m tools.test_understand` | Role-detection accuracy against the answer key |
 | `python -m tools.ref_report --refs data/refs --split heldout --pairs DIR` | Blind A/B images of the engine against designer reference layouts |
 | `python -m tools.learn_regress --save` | Retrains the picker from `data/refs/` (do this after changing any layout) |
