@@ -41,6 +41,7 @@ def _round(el: dict) -> dict:
 
 
 OVERLAP_OK = 0.85  # overlap term at or above this counts as collision-free
+HERO_FRAC = 0.5  # the spotlight must keep at least this fraction of the best share any clean layout gives it
 LOGO_OK = 0.45  # logo term at or above this counts as a clearly visible logo (about 27% of its original relative area)
 
 
@@ -97,13 +98,18 @@ def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
 
     # collisions are the judge's first criterion, then a clearly visible logo (brand), then our score;
     # a layout that fails a gate only wins if no candidate passes it
-    best, best_key = None, (-1, -1, -1.0)
+    scored = []
     for name, c in candidates(source, target_canvas):
         m = metrics(source, c)
         if m["errors"]:  # a layout that breaks a hard rule is never eligible, whatever else it scores
             continue
+        scored.append((name, c, m))
+    # the spotlight image must keep close to the biggest share any clean layout can give it
+    best_hero = max((m["hero_ratio"] for _, _, m in scored if m["overlap"] >= OVERLAP_OK), default=0.0)
+    best, best_key = None, (-1, -1, -1, -1.0)
+    for name, c, m in scored:
         value = picker.predict(m, name, tw, th) if picker else m["score"]
-        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, value)
+        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, m["hero_ratio"] >= HERO_FRAC * best_hero, value)
         if key > best_key:
             best, best_key = c, key
     return best if best is not None else safety_resize(source, target_canvas)

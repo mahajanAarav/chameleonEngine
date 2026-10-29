@@ -169,6 +169,17 @@ def metrics(source: dict, output: dict) -> dict:
             if _area(r) > 0 and e["type"] in ("text", "image"):
                 clash += _inter(dr, r) / _area(r)
     deco_clash = math.exp(-3 * clash)
+    # the spotlight keeps its share of the canvas (1.0 = as big a share as in the source)
+    heroes = design.heroes()
+    hero_ratio = 1.0
+    if heroes:
+        src_share = sum(_area(u.bbox) for u in heroes) / (sw * sh)
+        rects = [_rect(out_by_id[m_["id"]]) for u in heroes for m_ in u.members if m_["id"] in out_by_id]
+        if rects and src_share > 0:
+            out_share = _area((min(r[0] for r in rects), min(r[1] for r in rects), max(r[2] for r in rects),
+                               max(r[3] for r in rects))) / (cw * ch)
+            hero_ratio = min(1.5, out_share / src_share)
+
     # design conventions: where things sit, balance, breathing room, headline lines, reading order
     def centre(role):
         us = design.by_role(role)
@@ -228,6 +239,6 @@ def metrics(source: dict, output: dict) -> dict:
              "head_size": head_size, "fill": fill, "deco_clash": deco_clash, "wrap": wrap,
              "logo_cy": logo_cy, "logo_cx_off": logo_cx_off, "prod_cx_off": prod_cx_off, "prod_cy_off": prod_cy_off,
              "cent_dx": cent_dx, "cent_dy": cent_dy, "min_gap": min_gap, "head_lines": head_lines, "order": order,
-             "prod_raw": prod_raw, "head_raw": head_raw}
+             "prod_raw": prod_raw, "head_raw": head_raw, "hero_ratio": hero_ratio}
     score = 0.0 if errors else 100 * sum(WEIGHTS[k] * terms[k] for k in WEIGHTS)
     return {"score": score, "errors": errors, "warns": [m for s, m in probs if s == "warn"], **terms}

@@ -4,6 +4,7 @@ Roles come from geometry and style only; ids are never read (the hidden
 designs carry no labels). Unknown things fall back to generic roles.
 """
 
+import re
 from dataclasses import dataclass, field
 
 from engine.safety import _footprint, _units, is_background
@@ -42,6 +43,15 @@ class Design:
     def by_role(self, role: str) -> list:
         return [u for u in self.units if u.role == role]
 
+    def heroes(self) -> list:
+        """The spotlight: the biggest non-background image unit (a bundle or cluster counts as one) and any other
+        image unit at least half its size."""
+        imgs = [u for u in self.units if u.role in ("product", "image")]
+        if not imgs:
+            return []
+        big = max(_area(u.bbox) for u in imgs)
+        return [u for u in imgs if _area(u.bbox) >= 0.5 * big]
+
     def first(self, role: str):
         found = self.by_role(role)
         return found[0] if found else None
@@ -50,6 +60,15 @@ class Design:
 def _bbox(members):
     boxes = [_footprint(m) for m in members]
     return (min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes))
+
+
+_FINE = re.compile(r"©|®|™|\(c\)|copyright|all rights|www\.|https?://|\.com\b|\.co\.", re.I)
+
+
+def _fine_like(el: dict, W: float, H: float) -> bool:
+    """Tiny text, or legal / web-address text that is small, is fine print however large it is next to nothing else."""
+    rel = el["font_size"] / min(W, H)
+    return rel < 0.017 or (bool(_FINE.search(str(el.get("content", "")))) and rel < 0.05)
 
 
 def _is_upper(text: str) -> bool:
@@ -192,9 +211,15 @@ def understand(source: dict) -> Design:
         if u.role == "other":
             u.role = "image"
 
-    # 4. texts: headline = largest font; fine print; supporting; plain-text button
+    # 4. texts: fine print first (never a headline, even when it is the only text), then headline = largest font,
+    #    supporting, plain-text button
     if singles_text:
         fs = lambda u: u.members[0]["font_size"]
+        for u in singles_text:
+            if _fine_like(u.members[0], W, H):
+                u.role = "fine_print"
+        singles_text = [u for u in singles_text if u.role == "other"]
+    if singles_text:
         head = max(singles_text, key=lambda u: (fs(u), -u.order))
         head.role = "headline"
         for u in singles_text:

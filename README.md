@@ -36,7 +36,7 @@ text widths can differ by fractions of a pixel and near-tied layouts can flip; b
    variants that search for the largest product, button and text that still fit. Each template has a parameter grid,
    so a typical case yields 100 to 300 candidates. Decorative shapes keep their shape and are placed where they clash
    least. Headline size is capped so sparse designs don't balloon.
-4. **Reject, gate, pick** (`engine/resize.py`, `rules.py`, `score.py`, `picker.py`). Every candidate is checked against
+4. **Reject, gate, pick** (the spotlight image must keep a good share of the canvas, and fine print can never be inflated into a headline) (`engine/resize.py`, `rules.py`, `score.py`, `picker.py`). Every candidate is checked against
    the hard rules (ids, nothing off-canvas including rotated footprints, image aspect, no `fill`, text and fonts
    unchanged, wrapped text inside the canvas). Rule-breakers are never eligible. Survivors must be collision-free and
    keep a clearly visible logo whenever any candidate can. Among those, a **learned picker** chooses the layout
@@ -68,6 +68,7 @@ garbage are ignored. Tested in `tools/test_proposer.py` with hostile and mock mo
 |---|---|
 | `python -m tools.report` | Scores the engine on the official samples plus generated designs (train and held-out) across 25 real platform sizes; counts rule breaks |
 | `python -m tools.test_proposer` | Tests for the swappable model slot |
+| `python -m tools.real_ads --sheet out.png` | Look-alikes of real brand ads (McDonald's, Heinz, IKEA, Pizza Hut, Starbucks, Ford): hero share kept, text growth, rule errors |
 | `python -m tools.test_anchor` | Checks that things that belong together (bar under products, aura behind, image clusters) stay together |
 | `python -m tools.test_understand` | Role-detection accuracy against the answer key |
 | `python -m tools.ref_report --refs data/refs --split heldout --pairs DIR` | Blind A/B images of the engine against designer reference layouts |

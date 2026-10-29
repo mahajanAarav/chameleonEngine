@@ -72,7 +72,7 @@ def _head_cap(design: Design, TW: float, TH: float) -> float:
 
 def _ratio(unit, el, head):
     """Font size relative to the headline. A plain-text button stays at least 60% of it."""
-    r = max(0.3, min(0.9, el["font_size"] / head["font_size"]))
+    r = max(0.15, min(0.9, el["font_size"] / head["font_size"]))
     return max(r, 0.6) if unit.role == "cta_text" else r
 
 
