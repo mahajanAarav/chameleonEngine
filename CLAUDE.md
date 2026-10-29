@@ -88,6 +88,8 @@ Which fields besides x/y/w/h/font_size may change; how to handle elements that c
 
 **Real inputs + consistency (Oct 2026).** Purva sent 70 real-ad JSONs (14 ads x 5 sizes, in data/purva_inputs/designs; no image files yet). Engine: 0 crashes, 0 rule errors. Fixed: intentional source overlaps no longer penalised (mmm hero share 0.09 -> 1.0); size-readability gate before hero gate (320x50 worst case 55.9 -> 69.9). Q&A notes in docs/ORGANISER_NOTES.md (consistency across sizes matters most; standard social sizes first; unconfirmed whether dropping elements is allowed). Weakest: Story 1080x1920 and 300x50/320x50 banners (~82). Docker offline re-verified.
 
+**Story + picker retrain (Oct 2026).** Story targets get roomier safe-zone variants (top 12%, bottom up to 86%; layout.story_variants), so content fills the canvas: Story mean on Solstice about 82 -> 94, no longer a weak size. Picker retrained with the new candidates: held-out closeness to designers 38.6 (old pick 28.5, oracle 44.3). Weakest sizes now only the tiny banners 300x50/320x50/728x90 (82-88; legal text and badges at 2-6px, a physics limit unless elements may be dropped).
+
 **Deliverables done:** proposer slot, Docker re-run, README.md (organisers' original is STARTER_README.md). **Next options.** (1) More designer references (100+) to learn conventions and fit template parameters. (2) Tiny mobile banners and the logo in 728x90 banners are still too small. (3) Still waiting on organiser answers (see open questions).
 
 ## Commands
