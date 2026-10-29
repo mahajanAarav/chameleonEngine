@@ -42,6 +42,8 @@ def _round(el: dict) -> dict:
 
 OVERLAP_OK = 0.85  # overlap term at or above this counts as collision-free
 HERO_FRAC = 0.5  # the spotlight must keep at least this fraction of the best share any clean layout gives it
+HERO_FRAC_DOMINANT = 0.8  # ... and this much when it dominates the source design (the point of the ad)
+HERO_DOMINANT_SHARE = 0.33  # a spotlight covering at least this share of the source canvas counts as dominant
 LOGO_OK = 0.45  # logo term at or above this counts as a clearly visible logo (about 27% of its original relative area)
 
 
@@ -106,10 +108,14 @@ def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
         scored.append((name, c, m))
     # the spotlight image must keep close to the biggest share any clean layout can give it
     best_hero = max((m["hero_ratio"] for _, _, m in scored if m["overlap"] >= OVERLAP_OK), default=0.0)
+    from engine.understand import understand
+    sw, sh = source["canvas"]["width"], source["canvas"]["height"]
+    hero_area = sum(max(0.0, u.bbox[2] - u.bbox[0]) * max(0.0, u.bbox[3] - u.bbox[1]) for u in understand(source).heroes())
+    frac = HERO_FRAC_DOMINANT if hero_area / (sw * sh) >= HERO_DOMINANT_SHARE else HERO_FRAC
     best, best_key = None, (-1, -1, -1, -1.0)
     for name, c, m in scored:
         value = picker.predict(m, name, tw, th) if picker else m["score"]
-        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, m["hero_ratio"] >= HERO_FRAC * best_hero, value)
+        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, m["hero_ratio"] >= frac * best_hero, value)
         if key > best_key:
             best, best_key = c, key
     return best if best is not None else safety_resize(source, target_canvas)
