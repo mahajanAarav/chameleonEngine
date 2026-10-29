@@ -517,11 +517,12 @@ def _finish(design: Design, TW: float, TH: float, out: dict, pad: float, strip_h
         out[e["id"]] = e
 
 
-def _band(design: Design, TW: float, TH: float, pad: float):
+def _band(design: Design, TW: float, TH: float, pad: float, P: dict | None = None):
     """Vertical band for content: story shapes keep out of the top 14% / bottom 35%; a strip for fine print."""
     story = 0.5 <= TW / TH <= 0.6 and TW >= 500
-    top = 0.14 * TH if story else pad
-    bottom = 0.65 * TH if story else TH - pad
+    P = P or {}
+    top = P.get("st", 0.14) * TH if story else pad
+    bottom = P.get("sb", 0.65) * TH if story else TH - pad
     has_strip = bool(design.by_role("fine_print") or design.by_role("watermark"))
     strip_h = min(max(0.045 * TH, 12.0), 56.0 * max(1.0, TH / 1080)) if has_strip else 0.0
     band_bottom = bottom - (strip_h + 0.5 * pad if strip_h else 0.0)
@@ -532,7 +533,7 @@ def _band(design: Design, TW: float, TH: float, pad: float):
 def layout_stack(design: Design, TW: float, TH: float, P: dict):
     pad = max(4.0, round(0.06 * min(TW, TH) * P.get("pad", 1.0)))
     Wc = TW - 2 * pad
-    top, H, strip_h, edge = _band(design, TW, TH, pad)
+    top, H, strip_h, edge = _band(design, TW, TH, pad, P)
     if Wc < 40 or H < 60:
         return None
     parts = {"logo", "product", "text", "badges", "cta", "odd"} | (set() if P.get("rc") else {"ribbon"})
@@ -718,3 +719,8 @@ GROW_SPLIT_PARAMS = [
     {"mw": mw, "logo": 0.7, "logo_h": 0.18, "prod": 0.7, "hcap": 0.08, "cta": 0.1, "hmin": hm, "need_gap": ng}
     for mw in (0.38, 0.46) for hm in (0.04, 0.055, 0.07) for ng in (0.02, 0.04)
 ]
+
+
+def story_variants(params: list) -> list:
+    """Copies of a stack grid with a roomier story safe zone (the app's own bars cover about the top and bottom 13%)."""
+    return [dict(p, st=0.12, sb=sb) for p in params for sb in (0.78, 0.86)]

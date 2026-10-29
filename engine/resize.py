@@ -86,8 +86,11 @@ def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
         if tw / th >= 2.5:
             templates.append((layout_row, ROW_PARAMS + ROW_TIGHT_PARAMS))
         if tw / th <= 1.6:
-            templates.append((layout_stack, STACK_PARAMS + STACK_TIGHT_PARAMS))
-            templates.append((layout_stack_grow, GROW_STACK_PARAMS))
+            from engine.layout import story_variants
+            story = 0.5 <= tw / th <= 0.6 and tw >= 500
+            templates.append((layout_stack, STACK_PARAMS + STACK_TIGHT_PARAMS
+                              + (story_variants(STACK_TIGHT_PARAMS + STACK_PARAMS[::4]) if story else [])))
+            templates.append((layout_stack_grow, GROW_STACK_PARAMS + (story_variants(GROW_STACK_PARAMS) if story else [])))
         if 1.0 <= tw / th <= 3.0:
             templates.append((layout_split, SPLIT_PARAMS + SPLIT_WIDE_PARAMS))
             templates.append((layout_split_grow, GROW_SPLIT_PARAMS))
