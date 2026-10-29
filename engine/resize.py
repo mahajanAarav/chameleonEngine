@@ -45,6 +45,7 @@ READ_FRAC = 0.85  # text must be at least this readable, relative to the best cl
 MIRROR_TOP = 10  # how many of the best layouts get a mirrored twin tried
 MIRROR_GAIN = 0.15  # the twin must be at least this much more readable to be kept
 COLLAGE_MIN = 4  # this many separate pictures (not touching) make a collage
+SIZE_FRAC = 0.5
 HERO_FRAC = 0.5  # the spotlight must keep at least this fraction of the best share any clean layout gives it
 HERO_FRAC_DOMINANT = 0.8  # ... and this much when it dominates the source design (the point of the ad)
 HERO_DOMINANT_SHARE = 0.33  # a spotlight covering at least this share of the source canvas counts as dominant
@@ -138,16 +139,19 @@ def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
         if not mm["errors"] and mm["text_readable"] >= m["text_readable"] + MIRROR_GAIN:
             scored.append((name + "+mirror", mc, mm))
     # the spotlight image must keep close to the biggest share any clean layout can give it
-    best_hero = max((m["hero_ratio"] for _, _, m in scored if m["overlap"] >= OVERLAP_OK), default=0.0)
+    # size readability comes before the spotlight rule: in tiny banners a big picture must not cost the text its size
+    best_size = max((m["readability"] for _, _, m in scored if m["overlap"] >= OVERLAP_OK), default=0.0)
+    best_hero = max((m["hero_ratio"] for _, _, m in scored
+                     if m["overlap"] >= OVERLAP_OK and m["readability"] >= SIZE_FRAC * best_size), default=0.0)
     from engine.understand import understand
     sw, sh = source["canvas"]["width"], source["canvas"]["height"]
     hero_area = sum(max(0.0, u.bbox[2] - u.bbox[0]) * max(0.0, u.bbox[3] - u.bbox[1]) for u in understand(source).heroes())
     frac = HERO_FRAC_DOMINANT if hero_area / (sw * sh) >= HERO_DOMINANT_SHARE else HERO_FRAC
     best_read = max((m["text_readable"] for _, _, m in scored if m["overlap"] >= OVERLAP_OK), default=0.0)
-    best, best_key = None, (-1, -1, -1, -1, -1.0)
+    best, best_key = None, (-1, -1, -1, -1, -1, -1.0)
     for name, c, m in scored:
         value = picker.predict(m, name, tw, th) if picker else m["score"]
-        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, m["hero_ratio"] >= frac * best_hero,
+        key = (m["overlap"] >= OVERLAP_OK, m["logo"] >= LOGO_OK, m["readability"] >= SIZE_FRAC * best_size, m["hero_ratio"] >= frac * best_hero,
                m["text_readable"] >= READ_FRAC * best_read, value)
         if key > best_key:
             best, best_key = c, key
