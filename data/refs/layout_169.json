@@ -1,0 +1,133 @@
+{
+ "canvas": {
+  "width": 728,
+  "height": 90
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 728,
+   "height": 90,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "p0",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 150.4,
+   "y": 10.1,
+   "width": 24.2,
+   "height": 30.8,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p1",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 204.0,
+   "y": 36.8,
+   "width": 22.0,
+   "height": 37.4,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p2",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 268.9,
+   "y": 7.574999999999999,
+   "width": 29.7,
+   "height": 56.1,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p3",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 332.3,
+   "y": 5.324999999999999,
+   "width": 15.4,
+   "height": 56.1,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p4",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 384.0,
+   "y": 19.5,
+   "width": 22.0,
+   "height": 66.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p5",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 474.0,
+   "y": 12.75,
+   "width": 22.0,
+   "height": 33.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p6",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 522.6,
+   "y": 20.9,
+   "width": 19.8,
+   "height": 24.2,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p7",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 645,
+   "y": 6,
+   "width": 78,
+   "height": 78,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 8,
+   "y": 0,
+   "width": 74,
+   "height": 67.56521739130434,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "tag",
+   "type": "text",
+   "x": 0,
+   "y": 70,
+   "width": 90,
+   "height": 13.2,
+   "content": "eyes lips face",
+   "font_family": "Solstice Sans",
+   "font_size": 11,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "z_index": 6
+  }
+ ]
+}

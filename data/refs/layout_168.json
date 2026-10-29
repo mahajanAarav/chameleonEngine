@@ -1,0 +1,133 @@
+{
+ "canvas": {
+  "width": 1600,
+  "height": 400
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 1600,
+   "height": 400,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "p0",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 375.55,
+   "y": 38.60000000000001,
+   "width": 92.39999999999999,
+   "height": 117.6,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p1",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 479.5,
+   "y": 198.0,
+   "width": 84.0,
+   "height": 142.79999999999998,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p2",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 595.425,
+   "y": 48.349999999999994,
+   "width": 113.39999999999999,
+   "height": 214.2,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p3",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 729.6,
+   "y": 35.45000000000002,
+   "width": 58.8,
+   "height": 214.2,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p4",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 821.5,
+   "y": 126.19999999999999,
+   "width": 84.0,
+   "height": 252.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p5",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 992.5,
+   "y": 55.89999999999999,
+   "width": 84.0,
+   "height": 126.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p6",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 1086.95,
+   "y": 94.19999999999999,
+   "width": 75.6,
+   "height": 92.39999999999999,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p7",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 1210,
+   "y": 30,
+   "width": 350,
+   "height": 350,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 30,
+   "y": 30,
+   "width": 270,
+   "height": 246.52173913043478,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "tag",
+   "type": "text",
+   "x": 30,
+   "y": 290,
+   "width": 270,
+   "height": 40.8,
+   "content": "eyes lips face",
+   "font_family": "Solstice Sans",
+   "font_size": 34,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "z_index": 6
+  }
+ ]
+}

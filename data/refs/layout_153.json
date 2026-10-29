@@ -1,0 +1,71 @@
+{
+ "canvas": {
+  "width": 1200,
+  "height": 628
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 1200,
+   "height": 628,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "headline",
+   "type": "text",
+   "x": 60,
+   "y": 70,
+   "width": 620,
+   "height": 281,
+   "content": "See the Leaning Tower of Pizza",
+   "font_family": "Solstice Sans",
+   "font_size": 78,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "left",
+   "z_index": 6
+  },
+  {
+   "id": "tower",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 767,
+   "y": 34,
+   "width": 363,
+   "height": 560,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 60,
+   "y": 395,
+   "width": 125,
+   "height": 119,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "tag",
+   "type": "text",
+   "x": 60,
+   "y": 534,
+   "width": 520,
+   "height": 34,
+   "content": "Visit the Italian places now...",
+   "font_family": "Solstice Sans",
+   "font_size": 28,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "left",
+   "z_index": 6
+  }
+ ]
+}

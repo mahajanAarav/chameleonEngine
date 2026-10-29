@@ -1,0 +1,89 @@
+{
+ "canvas": {
+  "width": 1200,
+  "height": 628
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 1200,
+   "height": 628,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 25,
+   "y": 160,
+   "width": 190,
+   "height": 198,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "divider",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 240,
+   "y": 60,
+   "width": 3,
+   "height": 508,
+   "fill_color": "rgba(255,255,255,1)",
+   "z_index": 5
+  },
+  {
+   "id": "potato",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 290,
+   "y": 205,
+   "width": 220,
+   "height": 385,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "fries",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 570,
+   "y": 179,
+   "width": 275,
+   "height": 411,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "box",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 905,
+   "y": 205,
+   "width": 275,
+   "height": 385,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "copyright",
+   "type": "text",
+   "x": 45,
+   "y": 545,
+   "width": 133,
+   "height": 17,
+   "content": "\u00a92005 McDonald's",
+   "font_family": "Solstice Sans",
+   "font_size": 14,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.6)",
+   "text_align": "left",
+   "z_index": 6
+  }
+ ]
+}

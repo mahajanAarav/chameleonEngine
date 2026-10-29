@@ -1,0 +1,134 @@
+{
+ "canvas": {
+  "width": 1200,
+  "height": 628
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 1200,
+   "height": 628,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 60,
+   "y": 252,
+   "width": 134,
+   "height": 140,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "divider",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 255,
+   "y": 94,
+   "width": 2,
+   "height": 456,
+   "fill_color": "rgba(255,255,255,1)",
+   "z_index": 5
+  },
+  {
+   "id": "potato",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 330,
+   "y": 200,
+   "width": 200,
+   "height": 350,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "fries",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 583,
+   "y": 176,
+   "width": 250,
+   "height": 374,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "box",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 893,
+   "y": 200,
+   "width": 250,
+   "height": 350,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "copyright",
+   "type": "text",
+   "x": 60,
+   "y": 534,
+   "width": 125,
+   "height": 16,
+   "content": "\u00a92005 McDonald's",
+   "font_family": "Solstice Sans",
+   "font_size": 13,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.6)",
+   "text_align": "left",
+   "z_index": 6
+  },
+  {
+   "id": "before",
+   "type": "text",
+   "x": 344,
+   "y": 94,
+   "width": 171,
+   "height": 60,
+   "content": "before",
+   "font_family": "Solstice Sans",
+   "font_size": 50,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "left",
+   "z_index": 6
+  },
+  {
+   "id": "after",
+   "type": "text",
+   "x": 644,
+   "y": 94,
+   "width": 129,
+   "height": 60,
+   "content": "after",
+   "font_family": "Solstice Sans",
+   "font_size": 50,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "left",
+   "z_index": 6
+  },
+  {
+   "id": "right_after",
+   "type": "text",
+   "x": 886,
+   "y": 94,
+   "width": 264,
+   "height": 60,
+   "content": "right after",
+   "font_family": "Solstice Sans",
+   "font_size": 50,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "left",
+   "z_index": 6
+  }
+ ]
+}

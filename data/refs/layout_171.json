@@ -1,0 +1,133 @@
+{
+ "canvas": {
+  "width": 1200,
+  "height": 628
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 1200,
+   "height": 628,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "p0",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 259.3,
+   "y": 26.0,
+   "width": 88.0,
+   "height": 112.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p1",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 349.4,
+   "y": 134.0,
+   "width": 80.0,
+   "height": 136.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p2",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 448.15,
+   "y": 20.5,
+   "width": 108.0,
+   "height": 204.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p3",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 566.4,
+   "y": 11.5,
+   "width": 56.0,
+   "height": 204.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p4",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 644.5999999999999,
+   "y": 70.0,
+   "width": 80.0,
+   "height": 240.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p5",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 792.1999999999999,
+   "y": 37.0,
+   "width": 80.0,
+   "height": 120.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p6",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 874.0999999999999,
+   "y": 68.0,
+   "width": 72.0,
+   "height": 88.0,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "p7",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 870,
+   "y": 240,
+   "width": 330,
+   "height": 330,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 30,
+   "y": 140,
+   "width": 280,
+   "height": 255.65217391304347,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "tag",
+   "type": "text",
+   "x": 30,
+   "y": 400,
+   "width": 280,
+   "height": 31.2,
+   "content": "eyes lips face",
+   "font_family": "Solstice Sans",
+   "font_size": 26,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "center",
+   "z_index": 6
+  }
+ ]
+}

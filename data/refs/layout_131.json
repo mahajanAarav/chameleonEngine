@@ -1,0 +1,134 @@
+{
+ "canvas": {
+  "width": 1080,
+  "height": 1920
+ },
+ "elements": [
+  {
+   "id": "bg",
+   "type": "image",
+   "asset_id": "solstice_bg_gradient.png",
+   "x": 0,
+   "y": 0,
+   "width": 1080,
+   "height": 1920,
+   "fit": "cover",
+   "z_index": 0
+  },
+  {
+   "id": "logo",
+   "type": "image",
+   "asset_id": "solstice_logo_lockup.png",
+   "x": 454,
+   "y": 290,
+   "width": 173,
+   "height": 180,
+   "fit": "contain",
+   "z_index": 5
+  },
+  {
+   "id": "divider",
+   "type": "shape",
+   "shape_type": "rectangle",
+   "x": 539,
+   "y": 490,
+   "width": 2,
+   "height": 110,
+   "fill_color": "rgba(255,255,255,1)",
+   "z_index": 5
+  },
+  {
+   "id": "potato",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 50,
+   "y": 780,
+   "width": 230,
+   "height": 402,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "fries",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 354,
+   "y": 752,
+   "width": 288,
+   "height": 430,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "box",
+   "type": "image",
+   "asset_id": "solstice_bottle.png",
+   "x": 729,
+   "y": 780,
+   "width": 288,
+   "height": 402,
+   "fit": "contain",
+   "z_index": 4
+  },
+  {
+   "id": "copyright",
+   "type": "text",
+   "x": 454,
+   "y": 1700,
+   "width": 171,
+   "height": 22,
+   "content": "\u00a92005 McDonald's",
+   "font_family": "Solstice Sans",
+   "font_size": 18,
+   "font_weight": "regular",
+   "color": "rgba(255,255,255,0.6)",
+   "text_align": "left",
+   "z_index": 6
+  },
+  {
+   "id": "before",
+   "type": "text",
+   "x": 62,
+   "y": 650,
+   "width": 205,
+   "height": 72,
+   "content": "before",
+   "font_family": "Solstice Sans",
+   "font_size": 60,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "left",
+   "z_index": 6
+  },
+  {
+   "id": "after",
+   "type": "text",
+   "x": 420,
+   "y": 650,
+   "width": 154,
+   "height": 72,
+   "content": "after",
+   "font_family": "Solstice Sans",
+   "font_size": 60,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "left",
+   "z_index": 6
+  },
+  {
+   "id": "right_after",
+   "type": "text",
+   "x": 715,
+   "y": 650,
+   "width": 315,
+   "height": 72,
+   "content": "right after",
+   "font_family": "Solstice Sans",
+   "font_size": 60,
+   "font_weight": "bold",
+   "color": "rgba(255,255,255,1)",
+   "text_align": "left",
+   "z_index": 6
+  }
+ ]
+}
