@@ -1,0 +1,416 @@
+{
+ "pair_104": {
+  "case": "s25->Twitter Post",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_105": {
+  "case": "s25->Instagram Post",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_106": {
+  "case": "s30->Twitter Header",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_107": {
+  "case": "s30->Half Page",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_108": {
+  "case": "s35->Twitter Header",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_109": {
+  "case": "s35->Wide Skyscraper",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_110": {
+  "case": "s40->Instagram Landscape",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_111": {
+  "case": "s40->Billboard",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_112": {
+  "case": "s45->Half Page",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_113": {
+  "case": "s45->YouTube Thumbnail",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_114": {
+  "case": "s50->A4 Landscape",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_115": {
+  "case": "s50->Instagram Story",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_116": {
+  "case": "s55->Large Rectangle",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_117": {
+  "case": "s55->A4 Portrait",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_118": {
+  "case": "s60->Wide Skyscraper",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_119": {
+  "case": "s60->Billboard",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_120": {
+  "case": "s65->YouTube Thumbnail",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_121": {
+  "case": "s65->Half Page",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_122": {
+  "case": "s70->Instagram Portrait",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_123": {
+  "case": "s70->Wide Skyscraper",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_148": {
+  "case": "real:pizza->1080x1080",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_149": {
+  "case": "real:pizza->1080x1920",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_150": {
+  "case": "real:pizza->1600x400",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_151": {
+  "case": "real:pizza->728x90",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_152": {
+  "case": "real:pizza->300x250",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_153": {
+  "case": "real:pizza->1200x628",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_16": {
+  "case": "s5->LinkedIn Banner",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_160": {
+  "case": "real:ford->1080x1080",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_161": {
+  "case": "real:ford->1080x1920",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_162": {
+  "case": "real:ford->1600x400",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_163": {
+  "case": "real:ford->728x90",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_164": {
+  "case": "real:ford->300x250",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_165": {
+  "case": "real:ford->1200x628",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_17": {
+  "case": "s5->Instagram Story",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_172": {
+  "case": "real:mmm_wordart->1080x1080",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_173": {
+  "case": "real:mmm_wordart->1080x1920",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_174": {
+  "case": "real:mmm_wordart->1600x400",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_175": {
+  "case": "real:mmm_wordart->728x90",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_176": {
+  "case": "real:mmm_wordart->300x250",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_177": {
+  "case": "real:mmm_wordart->1200x628",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_18": {
+  "case": "s10->Billboard",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_19": {
+  "case": "s10->LinkedIn Square",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_20": {
+  "case": "s15->A4 Portrait",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_21": {
+  "case": "s15->Instagram Post",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_22": {
+  "case": "s20->Mobile Leaderboard",
+  "A": "ref",
+  "B": "engine",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ },
+ "pair_23": {
+  "case": "s20->Leaderboard",
+  "A": "engine",
+  "B": "ref",
+  "score": {
+   "ref": 0.0,
+   "engine": 0.0
+  }
+ }
+}
