@@ -117,8 +117,8 @@ def metrics(source: dict, output: dict) -> dict:
                 if sa and sb and frac > 0:
                     ssmall = min(_area(_rect(sa)), _area(_rect(sb)))
                     f0 = min(1.0, _inter(_rect(sa), _rect(sb)) / ssmall) if ssmall > 0 else 0.0
-                    if f0 >= 0.1:
-                        frac = max(0.0, frac - f0 - 0.1)
+                    if f0 >= 0.03:
+                        frac = max(0.0, frac - f0 - 0.05)
                 total += frac
     overlap = math.exp(-2 * total)
 
