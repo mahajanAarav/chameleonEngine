@@ -85,6 +85,7 @@ def _close_gaps(layout: dict) -> None:
 HERO_GROW_MAX = 1.6  # the spotlight may grow up to this much (linear) into free space around it
 HERO_GROW_SHARE = 0.45  # ... but never past this share of the canvas
 HERO_GROW_MIN = 1.05  # smaller gains aren't worth moving it
+HERO_GROW_SLIDE = 0.6  # ... and may slide at most this much (of its own size) to find room
 HERO_GROW_GAP = 0.02  # clear space kept to every other element (share of the canvas's short side)
 
 
@@ -133,7 +134,15 @@ def _grow_hero(source: dict, layout: dict) -> None:
     while k >= HERO_GROW_MIN:
         nw, nh = w * k, h * k
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-        for ax, ay in ((cx, cy), (cx, y0 + nh / 2), (cx, y1 - nh / 2), (x0 + nw / 2, cy), (x1 - nw / 2, cy)):
+        # every spot on a grid, nearest to where the hero already is first (it may slide into the free space)
+        steps = 24
+        spots = [(nw / 2 + (tw - nw) * i / steps, nh / 2 + (th - nh) * j / steps)
+                 for i in range(steps + 1) for j in range(steps + 1)] if tw > nw and th > nh else []
+        spots.sort(key=lambda p: (p[0] - cx) ** 2 + (p[1] - cy) ** 2)
+        far = HERO_GROW_SLIDE * max(w, h)
+        spots = [(cx, cy), (cx, y0 + nh / 2), (cx, y1 - nh / 2), (x0 + nw / 2, cy), (x1 - nw / 2, cy)] + [
+            p for p in spots if ((p[0] - cx) ** 2 + (p[1] - cy) ** 2) ** 0.5 <= far]
+        for ax, ay in spots:
             nx0 = min(max(ax - nw / 2, 0.0), tw - nw); ny0 = min(max(ay - nh / 2, 0.0), th - nh)
             if nx0 < -0.01 or ny0 < -0.01:
                 continue
