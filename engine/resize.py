@@ -223,6 +223,100 @@ def _grow_hero(source: dict, layout: dict) -> None:
         e["height"] = e["height"] * k if e["height"] * k < 50 else round(e["height"] * k, 2)
 
 
+def _off_colour_edge(layout: dict) -> None:
+    """A long line of text that straddles a hard colour edge of the picture behind it (cream meeting green) reads well
+    on one side and vanishes on the other. Slide it (with its group) a short way to the nearest spot where every third
+    of it reads well, into free space only, staying on the canvas. Lines that already read well are never touched."""
+    import numpy as np
+    from engine import pixels
+    from engine.finalize import _ink_inside
+    from engine.safety import is_background
+    from engine.score import _RGBA
+    tw, th = layout["canvas"]["width"], layout["canvas"]["height"]
+    if tw <= 0 or th <= 0 or max(tw, th) >= EXTREME_RATIO * min(tw, th):
+        return
+    imgs = [e for e in layout["elements"] if e.get("type") == "image"]
+    others = [e for e in layout["elements"] if not is_background(e, layout["canvas"])]
+
+    def box(e):
+        if e.get("type") == "text":
+            return _ink_inside(e, tw, th)[1]
+        return (e["x"], e["y"], e["x"] + e["width"], e["y"] + e["height"])
+
+    def inter(a, b):
+        return max(0.0, min(a[2], b[2]) - max(a[0], b[0])) * max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+
+    def thirds_score(e, r):
+        """Readability of the worst third of rect r for text e (None if unknown)."""
+        z = e.get("z_index") or 0
+        under = [im for im in imgs if (im.get("z_index") or 0) <= z and inter(box(im), r) > 0]
+        mt = _RGBA.match(str(e.get("color", "")))
+        if not under or not mt:
+            return None
+        top = max(under, key=lambda im: im.get("z_index") or 0)
+        cr, cg, cb = (float(mt.group(i)) / 255 for i in (1, 2, 3))
+        alpha = float(mt.group(4) or 1) * float(e.get("opacity", 1))
+        lt = float(pixels.rel_luminance(np.array([cr, cg, cb])))
+        worst = None
+        w, hh = r[2] - r[0], r[3] - r[1]
+        cells = [(r[0] + w * i / 8, r[1] + hh * j / 2, r[0] + w * (i + 1) / 8, r[1] + hh * (j + 1) / 2)
+                 for i in range(8) for j in range(2)]  # fine grid: a cell half on each colour can't hide in an average
+        for part in cells:
+            res = pixels.luma_under(top.get("asset_id", ""), (top["x"], top["y"], top["width"], top["height"]),
+                                    top.get("fit", "contain"), part)
+            if res is None:
+                return None
+            bg, busy = res
+            eff = alpha * lt + (1 - alpha) * bg
+            sc = min(1.0, ((max(eff, bg) + 0.05) / (min(eff, bg) + 0.05)) / 4.5) * (1 - 0.5 * min(1.0, busy / 0.08))
+            worst = sc if worst is None else min(worst, sc)
+        return worst
+
+    for e in [t for t in layout["elements"] if t.get("type") == "text" and not t.get("rotation")]:
+        r = box(e)
+        if (r[2] - r[0]) < 2.5 * (r[3] - r[1]):
+            continue  # short words don't straddle edges in a way thirds can see
+        m = EDGE_MARGIN * float(e.get("font_size") or 0)  # judge with a margin: grazing the edge still looks wrong
+        rp = lambda q: (max(0.0, q[0] - m), max(0.0, q[1] - m), min(tw, q[2] + m), min(th, q[3] + m))
+        now = thirds_score(e, rp(r))
+        if now is None or now >= EDGE_OK:
+            continue
+        grp = [g for g in layout["elements"] if g is e or (e.get("group_id") and g.get("group_id") == e.get("group_id"))]
+        gb = [box(g) for g in grp]
+        G = (min(b[0] for b in gb), min(b[1] for b in gb), max(b[2] for b in gb), max(b[3] for b in gb))
+        rest = [box(o) for o in others if o not in grp]
+        before = [inter(G, o) for o in rest]
+        reach = EDGE_REACH * min(tw, th)
+        best = None
+        steps = 16
+        for i in range(-steps, steps + 1):
+            for j in range(-steps, steps + 1):
+                dx, dy = reach * i / steps, reach * j / steps
+                if dx == 0 and dy == 0:
+                    continue
+                NG = (G[0] + dx, G[1] + dy, G[2] + dx, G[3] + dy)
+                if NG[0] < 0 or NG[1] < 0 or NG[2] > tw or NG[3] > th:
+                    continue
+                if any(inter(NG, o) > b + 1.0 for o, b in zip(rest, before)):
+                    continue
+                sc = thirds_score(e, rp((r[0] + dx, r[1] + dy, r[2] + dx, r[3] + dy)))
+                if sc is None or sc < EDGE_OK:
+                    continue
+                dist = dx * dx + dy * dy
+                if best is None or dist < best[0]:
+                    best = (dist, dx, dy)
+        if best is not None:
+            _, dx, dy = best
+            for g in grp:
+                g["x"] = round(g["x"] + dx, 2)
+                g["y"] = round(g["y"] + dy, 2)
+
+
+EDGE_OK = 0.8  # a third of a line reading at least this well (contrast about 3.6:1) is fine
+EDGE_REACH = 0.25
+EDGE_MARGIN = 0.35  # clear space kept from the colour edge, as a share of the line height  # how far (share of the short side) a line may slide to get off a colour edge
+
+
 def _untangle_text(layout: dict, source: dict = None) -> None:
     """A line of text partly hidden under the text above it (the source had them nearly touching and scaling made it an
     overlap) is pushed clear: it and everything below it in its column move down, or the upper text and everything
@@ -935,6 +1029,10 @@ def resize(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
             pass
         try:
             _untangle_text(out, source)
+        except Exception:
+            pass
+        try:
+            _off_colour_edge(out)
         except Exception:
             pass
         try:
