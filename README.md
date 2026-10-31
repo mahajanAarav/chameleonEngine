@@ -6,9 +6,29 @@ No model ships inside the engine, but any model can be plugged in (see **Swappab
 
 ## Run it
 
+First time (Python 3.11+, needs internet once to install the renderer):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt   # Pillow, numpy, the organisers' cr-renderer
+```
+
+Then, every time:
+
 ```bash
 source .venv/bin/activate
 python -m engine.main            # every task in input/ -> output/<task>_output.json + .png
+```
+
+Each task in `input/` is a JSON file with `source` (canvas + elements) and `target_canvas`. Images referenced by
+`asset_id` must be in `brand_kit/assets/`. Results land in `output/`: the resized JSON and a rendered PNG per task.
+
+Checks (all should print PASS / "11/11 checks passed"):
+
+```bash
+python -m tools.test_understand && python -m tools.test_anchor && python -m tools.test_pixels && python -m tools.test_proposer
+python -m tools.fuzz -n 300      # random odd designs: crashes / rule errors / slow cases
 ```
 
 Docker, the same way scoring runs it (offline):
