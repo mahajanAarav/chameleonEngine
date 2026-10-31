@@ -90,6 +90,17 @@ in this way would have its weights hosted publicly (e.g. a Hugging Face repo) an
 
 Dependencies: `Pillow`, `numpy`, and the organisers' `cr-renderer` (see `requirements.txt`). Python 3.11+.
 
+### Getting, moving and swapping the weights
+
+- **They ship with the code:** `engine/regressor.json` (3 KB, 78 numbers + per-shape size targets). Nothing to download.
+- **Public copy on Hugging Face:** https://huggingface.co/ppatel16/chameleon-picker (model card: `MODEL_CARD.md`).
+  Download with `huggingface-cli download ppatel16/chameleon-picker regressor.json --local-dir engine/`, or by hand.
+- **Use other weights without touching code:** `CHAMELEON_WEIGHTS=/path/to/weights.json python -m engine.main`.
+- **Retrain on your own reference layouts:** put `task_NN.json` + `layout_NN.json` pairs in `data/refs/` and run
+  `python -m tools.learn_regress --save` (seconds, CPU only).
+- **Run with no model at all:** delete or rename the file; the engine falls back to its hand-set score.
+- **Plug in a different kind of model** (small local model, hosted LLM): see **Swappable models** below.
+
 ## Swappable models
 
 `engine/proposer.py` is a socket for any model, small or large, local or hosted. A *proposer* is any function

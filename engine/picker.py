@@ -7,11 +7,13 @@ and their interaction. If the file is missing the engine silently falls back to 
 
 import json
 import math
+import os
 from pathlib import Path
 
 import numpy as np
 
-_PATH = Path(__file__).with_name("regressor.json")
+# CHAMELEON_WEIGHTS=/path/to/weights.json swaps in other weights (e.g. downloaded from Hugging Face) with no code change
+_PATH = Path(os.environ.get("CHAMELEON_WEIGHTS") or Path(__file__).with_name("regressor.json"))
 BUCKETS = 5
 
 
