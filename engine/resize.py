@@ -85,6 +85,10 @@ def _close_gaps(layout: dict) -> None:
 HERO_GROW_MAX = 1.6  # the spotlight may grow up to this much (linear) into free space around it
 HERO_GROW_SHARE = 0.45  # ... but never past this share of the canvas
 HERO_GROW_MIN = 1.05  # smaller gains aren't worth moving it
+HERO_GROW_MAX_SMALL = 2.0  # a hero under HERO_SMALL_SHARE of the canvas may grow this much
+HERO_SMALL_SHARE = 0.08
+HERO_MOVE_GAIN = 0.25
+CORNER_ZONE = 0.3  # "in a corner": centre within this share of the canvas from two edges  # a smaller picture moves to a corner only if the hero then grows this much more
 HERO_GROW_SLIDE = 0.6  # ... and may slide at most this much (of its own size) to find room
 HERO_GROW_GAP = 0.02  # clear space kept to every other element (share of the canvas's short side)
 
@@ -92,13 +96,16 @@ HERO_GROW_GAP = 0.02  # clear space kept to every other element (share of the ca
 def _grow_hero(source: dict, layout: dict) -> None:
     """Last step: a spotlight picture surrounded by empty space grows into it (a taco in the middle of a wide canvas).
     Uniform scale only (proportions kept), it stays on the canvas, keeps a clear gap to everything it did not already
-    touch, and never covers more of anything it already touched. Pictures only: a hero with captions is left alone."""
+    touch, and never covers more of anything it already touched. Pictures only: a hero with captions is left alone.
+    If a smaller, less important picture is in the way (a person standing under the product), that picture may first
+    move to a free corner (the one nearest where it sat in the original) when that lets the hero grow clearly more."""
     from engine.safety import is_background
     from engine.understand import understand
     tw, th = layout["canvas"]["width"], layout["canvas"]["height"]
     if tw <= 0 or th <= 0 or max(tw, th) >= EXTREME_RATIO * min(tw, th):
         return
-    heroes = understand(source).heroes()
+    d = understand(source)
+    heroes = d.heroes()
     if not heroes:
         return
     hero = max(heroes, key=lambda u: (u.bbox[2] - u.bbox[0]) * (u.bbox[3] - u.bbox[1]))
@@ -114,8 +121,7 @@ def _grow_hero(source: dict, layout: dict) -> None:
     if w <= 0 or h <= 0:
         return
     gap = HERO_GROW_GAP * min(tw, th)
-    others = [e for e in layout["elements"] if e["id"] not in ids and not is_background(e, layout["canvas"])
-              and e.get("width", 0) > 0 and e.get("height", 0) > 0]
+    by = {e["id"]: e for e in layout["elements"]}
 
     def box(e):
         if e.get("type") == "text":
@@ -126,44 +132,193 @@ def _grow_hero(source: dict, layout: dict) -> None:
     def inter(a, b):
         return max(0.0, min(a[2], b[2]) - max(a[0], b[0])) * max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
 
-    obs = [box(e) for e in others]
+    def pad(b, g):
+        return (b[0] - g, b[1] - g, b[2] + g, b[3] + g)
+
     old = (x0, y0, x1, y1)
-    before = [inter(old, o) for o in obs]
-    cap = min(HERO_GROW_MAX, (HERO_GROW_SHARE * tw * th / (w * h)) ** 0.5)
-    k = cap
-    while k >= HERO_GROW_MIN:
-        nw, nh = w * k, h * k
+    share = w * h / (tw * th)
+    cap = min(HERO_GROW_MAX_SMALL if share < HERO_SMALL_SHARE else HERO_GROW_MAX,
+              (HERO_GROW_SHARE * tw * th / (w * h)) ** 0.5)
+
+    def best(obs):
+        """Biggest scale (and spot) for the hero with these obstacle boxes; (1.0, None) if it can't grow."""
+        before = [inter(old, o) for o in obs]
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-        # every spot on a grid, nearest to where the hero already is first (it may slide into the free space)
-        steps = 24
-        spots = [(nw / 2 + (tw - nw) * i / steps, nh / 2 + (th - nh) * j / steps)
-                 for i in range(steps + 1) for j in range(steps + 1)] if tw > nw and th > nh else []
-        spots.sort(key=lambda p: (p[0] - cx) ** 2 + (p[1] - cy) ** 2)
         far = HERO_GROW_SLIDE * max(w, h)
-        spots = [(cx, cy), (cx, y0 + nh / 2), (cx, y1 - nh / 2), (x0 + nw / 2, cy), (x1 - nw / 2, cy)] + [
-            p for p in spots if ((p[0] - cx) ** 2 + (p[1] - cy) ** 2) ** 0.5 <= far]
-        for ax, ay in spots:
-            nx0 = min(max(ax - nw / 2, 0.0), tw - nw); ny0 = min(max(ay - nh / 2, 0.0), th - nh)
-            if nx0 < -0.01 or ny0 < -0.01:
-                continue
-            new = (nx0, ny0, nx0 + nw, ny0 + nh)
-            padded = (new[0] - gap, new[1] - gap, new[2] + gap, new[3] + gap)
-            ok = True
-            for o, b in zip(obs, before):
-                if b > 0:
-                    if inter(new, o) > b + 1.0:  # already touching: may not cover more of it
+        k = cap
+        while k >= HERO_GROW_MIN:
+            nw, nh = w * k, h * k
+            steps = 24
+            grid = [(nw / 2 + (tw - nw) * i / steps, nh / 2 + (th - nh) * j / steps)
+                    for i in range(steps + 1) for j in range(steps + 1)] if tw > nw and th > nh else []
+            grid = [p for p in grid if ((p[0] - cx) ** 2 + (p[1] - cy) ** 2) ** 0.5 <= far]
+            grid.sort(key=lambda p: (p[0] - cx) ** 2 + (p[1] - cy) ** 2)
+            for ax, ay in [(cx, cy), (cx, y0 + nh / 2), (cx, y1 - nh / 2), (x0 + nw / 2, cy), (x1 - nw / 2, cy)] + grid:
+                nx0 = min(max(ax - nw / 2, 0.0), tw - nw); ny0 = min(max(ay - nh / 2, 0.0), th - nh)
+                if nx0 < -0.01 or ny0 < -0.01:
+                    continue
+                new = (nx0, ny0, nx0 + nw, ny0 + nh)
+                ok = True
+                for o, b in zip(obs, before):
+                    if b > 0:
+                        if inter(new, o) > b + 1.0:  # already touching: may not cover more of it
+                            ok = False; break
+                    elif inter(pad(new, gap), o) > 0:
                         ok = False; break
-                elif inter(padded, o) > 0:
-                    ok = False; break
-            if not ok:
+                if ok:
+                    return k, (nx0, ny0)
+            k -= 0.05
+        return 1.0, None
+
+    def obstacles(skip=()):
+        return [box(e) for e in layout["elements"] if e["id"] not in ids and e["id"] not in skip
+                and not is_background(e, layout["canvas"]) and e.get("width", 0) > 0 and e.get("height", 0) > 0]
+
+    k, spot = best(obstacles())
+    move = None  # (unit member ids, dx, dy)
+    if k < cap - 1e-6:
+        sw, sh = source["canvas"]["width"], source["canvas"]["height"]
+        for u in d.units:
+            if u is hero or u.role not in ("image", "product") or u.importance > hero.importance:
                 continue
-            for e in els:
-                e["x"] = round(nx0 + (e["x"] - x0) * k, 2)
-                e["y"] = round(ny0 + (e["y"] - y0) * k, 2)
-                e["width"] = e["width"] * k if e["width"] * k < 50 else round(e["width"] * k, 2)
-                e["height"] = e["height"] * k if e["height"] * k < 50 else round(e["height"] * k, 2)
+            if not all(m["type"] == "image" and not m.get("rotation") for m in u.members):
+                continue
+            mids = [m["id"] for m in u.members if m["id"] in by]
+            if not mids:
+                continue
+            ue = [by[i] for i in mids]
+            ub = (min(e["x"] for e in ue), min(e["y"] for e in ue),
+                  max(e["x"] + e["width"] for e in ue), max(e["y"] + e["height"] for e in ue))
+            uw, uh = ub[2] - ub[0], ub[3] - ub[1]
+            if uw * uh >= w * h or not inter(pad(ub, gap), pad(old, w * cap)):  # only smaller pictures near the hero
+                continue
+            rest = obstacles(skip=set(mids))
+            # corners, nearest to where this picture sat in the original first
+            ux, uy = (u.bbox[0] + u.bbox[2]) / 2 / sw, (u.bbox[1] + u.bbox[3]) / 2 / sh
+            if not ((ux <= CORNER_ZONE or ux >= 1 - CORNER_ZONE) and (uy <= CORNER_ZONE or uy >= 1 - CORNER_ZONE)):
+                continue  # only a picture that already sat in a corner may go to one (a donut in the middle of a set stays)
+            corners = sorted([(0.0, 0.0), (tw - uw, 0.0), (0.0, th - uh), (tw - uw, th - uh)],
+                             key=lambda c: ((c[0] + uw / 2) / tw - ux) ** 2 + ((c[1] + uh / 2) / th - uy) ** 2)
+            for cxp, cyp in corners:
+                nb = (cxp, cyp, cxp + uw, cyp + uh)
+                if any(inter(pad(nb, gap), o) > 0 for o in rest) or inter(pad(nb, gap), old) > 0:
+                    continue
+                k2, spot2 = best(rest + [nb])
+                if spot2 is not None and k2 >= k + HERO_MOVE_GAIN:
+                    if move is None or k2 > k:
+                        k, spot, move = k2, spot2, (mids, cxp - ub[0], cyp - ub[1])
+                break  # only the nearest free corner
+    if spot is None:
+        return
+    if move is not None:
+        mids, dx, dy = move
+        for i in mids:
+            by[i]["x"] = round(by[i]["x"] + dx, 2)
+            by[i]["y"] = round(by[i]["y"] + dy, 2)
+    nx0, ny0 = spot
+    for e in els:
+        e["x"] = round(nx0 + (e["x"] - x0) * k, 2)
+        e["y"] = round(ny0 + (e["y"] - y0) * k, 2)
+        e["width"] = e["width"] * k if e["width"] * k < 50 else round(e["width"] * k, 2)
+        e["height"] = e["height"] * k if e["height"] * k < 50 else round(e["height"] * k, 2)
+
+
+def _untangle_text(layout: dict, source: dict = None) -> None:
+    """A line of text partly hidden under the text above it (the source had them nearly touching and scaling made it an
+    overlap) is pushed clear: it and everything below it in its column move down, or the upper text and everything
+    above it move up - whichever fits on the canvas without touching anything new. Small overlaps only (< 60% of the
+    lower line), so deliberate word-art layering is left alone."""
+    from engine.finalize import _ink_inside
+    from engine.safety import is_background
+    tw, th = layout["canvas"]["width"], layout["canvas"]["height"]
+    if tw <= 0 or th <= 0:
+        return
+    els = [e for e in layout["elements"] if not is_background(e, layout["canvas"]) and e.get("width", 0) > 0
+           and e.get("height", 0) > 0]
+
+    def box(e):
+        if e.get("type") == "text":
+            return _ink_inside(e, tw, th)[1]
+        return (e["x"], e["y"], e["x"] + e["width"], e["y"] + e["height"])
+
+    def inter(a, b):
+        return max(0.0, min(a[2], b[2]) - max(a[0], b[0])) * max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+
+    from engine.textmeasure import measure_text
+    src_by = {e["id"]: e for e in (source or {}).get("elements", [])}
+
+    def wrapped_more(e):
+        """The text broke into more lines than in the source, so any overlap below it is new, not a design choice."""
+        s0 = src_by.get(e.get("id"))
+        return bool(s0) and measure_text(e)["n_lines"] > measure_text(s0)["n_lines"]
+
+    gap = 0.008 * min(tw, th)
+    for _ in range(6):
+        boxes = {id(e): box(e) for e in els}
+        texts = [e for e in els if e.get("type") == "text" and not e.get("rotation")]
+        pair = None
+        for a in texts:
+            for b in texts:
+                if a is b or (a.get("group_id") and a.get("group_id") == b.get("group_id")):
+                    continue
+                A, Bb = boxes[id(a)], boxes[id(b)]
+                if A[1] >= Bb[1] or min(A[2], Bb[2]) - max(A[0], Bb[0]) <= 0:
+                    continue
+                ov = A[3] - Bb[1]
+                if 0 < ov and (ov <= 0.6 * (Bb[3] - Bb[1]) or wrapped_more(a)):
+                    pair = (a, b, ov); break
+            if pair:
+                break
+        if not pair:
             return
-        k -= 0.05
+        a, b, ov = pair
+        A, Bb = boxes[id(a)], boxes[id(b)]
+        done = False
+        for down in (True, False):
+            d = (ov + gap) if down else -(ov + gap)
+            start = b if down else a
+            # cascade: move the line, then whatever it would now run into, and so on (only what is really in the way)
+            movers = [start]
+            if start.get("group_id"):
+                movers += [e for e in els if e is not start and e.get("group_id") == start.get("group_id")]
+            changed = True
+            while changed:
+                changed = False
+                ids = {id(e) for e in movers}
+                for f in els:
+                    if id(f) in ids or f is (a if down else b):
+                        continue
+                    fb = boxes[id(f)]
+                    for e in movers:
+                        eb = boxes[id(e)]
+                        mb = (eb[0], eb[1] + d, eb[2], eb[3] + d)
+                        if inter(mb, fb) > inter(eb, fb) + 1.0 and ((fb[1] >= eb[1] - 1) if down else (fb[3] <= eb[3] + 1)):
+                            grp = [g for g in els if f.get("group_id") and g.get("group_id") == f.get("group_id")]
+                            movers += [f] + [g for g in grp if g is not f and id(g) not in ids]
+                            changed = True
+                            break
+                    if changed:
+                        break
+            ids = {id(e) for e in movers}
+            moved = {i: (bx[0], bx[1] + d, bx[2], bx[3] + d) for i, bx in boxes.items() if i in ids}
+            if any(bx[1] < -0.5 or bx[3] > th + 0.5 for bx in moved.values()):
+                continue
+            ok = True
+            for e in movers:
+                for f in els:
+                    if id(f) in ids:
+                        continue
+                    if inter(moved[id(e)], boxes[id(f)]) > inter(boxes[id(e)], boxes[id(f)]) + 1.0:
+                        ok = False; break
+                if not ok:
+                    break
+            if ok:
+                for e in movers:
+                    e["y"] = round(e["y"] + d, 2)
+                done = True
+                break
+        if not done:
+            return
 
 
 def _round(el: dict) -> dict:
@@ -776,6 +931,10 @@ def resize(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
         out = _finalized(source, _smart(source, target_canvas))
         try:
             _grow_hero(source, out)
+        except Exception:
+            pass
+        try:
+            _untangle_text(out, source)
         except Exception:
             pass
         try:

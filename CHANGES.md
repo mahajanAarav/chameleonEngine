@@ -248,6 +248,10 @@ File changed: `engine/resize.py` only.
 - Checks: 178 designs 0 rule errors; 336 unusual sizes 0 rule errors (same 9 tiny-text); fuzz 600 (seeds 0 and
   300), 0 new errors; tests pass; ref_report 32.8 / 32.4 (held-out up from 31.8).
 
+## Rounds 10-12 (Oct 31)
+
+- Rounds 10-12 (Oct 31): the spotlight picture slides into free space to grow (up to 1.6x, 2x when it is under 8% of the canvas); a smaller picture that sat in a corner of the original may move to that corner to make room; a text line left partly under another (or overlapped because it wrapped onto more lines) is pushed clear with only what is in its way. 193 designs 0 rule errors; 336 unusual sizes 0 rule errors; fuzz 0 errors.
+
 ## Known leftovers
 - **Fuzz:** 3 of 1,200 random designs (seeds 0–3) still fail with text off the canvas. All are extreme spacing on
   tiny type in 50×50 canvases. The old engine passed these only because it didn't measure spacing, so the real

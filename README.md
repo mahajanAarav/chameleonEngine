@@ -217,6 +217,7 @@ Claude subagents that could render and iterate) and `data/judgments/` (blind pic
   1.6x linear, at most 45% of the canvas, uniform scale, keeps a clear gap to everything it did not already touch,
   never covers more of what it touched; pictures only, never rotated ones). 178 designs 0 rule errors; 336 unusual
   sizes 0 rule errors; fuzz 600 0 new errors; reference score 32.8 / 32.4 (held-out up from 31.8).
+- Rounds 10-12 (Oct 31): the spotlight picture slides into free space to grow (up to 1.6x, 2x when it is under 8% of the canvas); a smaller picture that sat in a corner of the original may move to that corner to make room; a text line left partly under another (or overlapped because it wrapped onto more lines) is pushed clear with only what is in its way. 193 designs 0 rule errors; 336 unusual sizes 0 rule errors; fuzz 0 errors.
 - Known limits: in very small formats (300x250, 728x90) the longest fine print or a rotated ribbon label can still end
   up around 4px; the rules forbid dropping it, so it stays, small.
 - Open questions for the organisers are listed in `docs/ORGANISER_NOTES.md`.
