@@ -182,6 +182,10 @@ Claude subagents that could render and iterate) and `data/judgments/` (blind pic
   stack variants + an order key); when the winning layout's text sits on a poor background, its mirror image is
   tried too (Starbucks banner headline was green on green). 178 designs 0 rule errors; 336 unusual sizes 0 rule
   errors; fuzz 300 0 errors; reference score 32.6 / 31.8 (unchanged).
+- Round 9 (Oct 30-31, night): a spotlight picture with empty space around it grows into it as a last step (up to
+  1.6x linear, at most 45% of the canvas, uniform scale, keeps a clear gap to everything it did not already touch,
+  never covers more of what it touched; pictures only, never rotated ones). 178 designs 0 rule errors; 336 unusual
+  sizes 0 rule errors; fuzz 600 0 new errors; reference score 32.8 / 32.4 (held-out up from 31.8).
 - Known limits: in very small formats (300x250, 728x90) the longest fine print or a rotated ribbon label can still end
   up around 4px; the rules forbid dropping it, so it stays, small.
 - Open questions for the organisers are listed in `docs/ORGANISER_NOTES.md`.

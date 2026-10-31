@@ -218,6 +218,36 @@ Files changed: `engine/understand.py`, `engine/resize.py` only (layout, finalize
   ref_report 32.8 / 31.7 (unchanged); unit tests pass; fuzz 600 (seeds 0 and 300), 0 crashes; 2 rule
   errors at 50x50 from extreme letter spacing, identical on the previous engine (known leftover below).
 
+## Round 8 (Oct 30, night): 7 more ads (Target same-day, Chipotle x2, Taco Bell x2, Starbucks x2)
+
+Files changed: `engine/resize.py`, `engine/layout.py`.
+
+- Title stays on top: `layout.head_on_top` (headline above every picture in the source) adds `text_first` variants to
+  the stack and grow-stack templates; `_column` puts the text before the pictures for them. Selection prefers keeping
+  the order when hero/headline balance keeps >= 80% of the best (`ORDER_BAL`). Chipotle "Never Forget" story / square
+  / 300x250 and Fiery square now read title -> burritos -> punchline as designed.
+- Mirror of the winner: when the chosen layout's text sits on a poor background, its left-right mirror is tried as
+  well (before, only the top-10 by score got a mirror). Starbucks banner: "SO MUCH YES" was green on the green band,
+  now on the pale side.
+- Checks: 178 designs (143 + 35 new) 0 rule errors; 336 unusual sizes 0 rule errors (same 9 tiny-text); fuzz 300,
+  0 errors; tests pass; ref_report 32.6 / 31.8.
+- Known: Fiery story still puts the headline under the product (its product-name lockup with rules is read as a
+  button). Taco Bell and Matcha backgrounds show soft blobs where the converter lifted the hero off a busy photo:
+  test-data artifact, not the engine.
+
+## Round 9 (Oct 30-31, night): heroes grow into free space
+
+File changed: `engine/resize.py` only.
+
+- `_grow_hero`, the last step before closing gaps: the spotlight picture grows into empty space around it, up to
+  1.6x (linear) and at most 45% of the canvas. Uniform scale, stays on the canvas, keeps a clear gap to everything it
+  didn't already touch and never covers more of what it did. Pictures only (not captions), never rotated ones.
+  Changes 10 of the 35 newest designs (Never Forget landscape and banner, Fiery banner, matcha cups).
+- Not fixed: the Taco Bell cricket taco in landscape can't grow (text right above and below it). It needs a
+  side-by-side layout, which currently can't fit that ad's 19 text pieces.
+- Checks: 178 designs 0 rule errors; 336 unusual sizes 0 rule errors (same 9 tiny-text); fuzz 600 (seeds 0 and
+  300), 0 new errors; tests pass; ref_report 32.8 / 32.4 (held-out up from 31.8).
+
 ## Known leftovers
 - **Fuzz:** 3 of 1,200 random designs (seeds 0–3) still fail with text off the canvas. All are extreme spacing on
   tiny type in 50×50 canvases. The old engine passed these only because it didn't measure spacing, so the real

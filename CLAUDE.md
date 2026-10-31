@@ -110,6 +110,8 @@ Which fields besides x/y/w/h/font_size may change; how to handle elements that c
 
 **Round 8 (Oct 30, night).** `layout.head_on_top` + `text_first` variants (half of the stack and grow-stack params) put the text slot before the pictures in `_column`; selection key `order_kept(c) and balance >= ORDER_BAL (0.8) x best` right after `follows`. `_smart` tries the winner's mirror when its text_readable < 0.95 and keeps it if readability gains >= MIRROR_GAIN and every other key holds. Known: Fiery story keeps the headline under the product (its name lockup with rules reads as a button, which goes last).
 
+**Round 9.** `resize._grow_hero` after `_finalized` (before `_close_gaps`): biggest hero unit, image-only and unrotated, scaled up to min(HERO_GROW_MAX 1.6, sqrt(HERO_GROW_SHARE 0.45 x canvas / area)) trying 5 anchors, gap HERO_GROW_GAP 0.02 x short side to untouched elements, no extra overlap with touched ones; skipped on extreme ratios. Known: Taco Bell cricket landscape taco can't grow (text above and below); its split layouts fail to fit 19 text pieces.
+
 ## Commands
 - Run engine: `source .venv/bin/activate && python -m engine.main`
 - Docker: `docker build --platform linux/amd64 -t my-chameleon-engine .` then `docker run --rm --network none -v $(pwd)/input:/app/input -v $(pwd)/output:/app/output my-chameleon-engine`

@@ -82,6 +82,81 @@ def _close_gaps(layout: dict) -> None:
         e[ax] = round(e[ax] + shifts[k] + centre, 2)
 
 
+HERO_GROW_MAX = 1.6  # the spotlight may grow up to this much (linear) into free space around it
+HERO_GROW_SHARE = 0.45  # ... but never past this share of the canvas
+HERO_GROW_MIN = 1.05  # smaller gains aren't worth moving it
+HERO_GROW_GAP = 0.02  # clear space kept to every other element (share of the canvas's short side)
+
+
+def _grow_hero(source: dict, layout: dict) -> None:
+    """Last step: a spotlight picture surrounded by empty space grows into it (a taco in the middle of a wide canvas).
+    Uniform scale only (proportions kept), it stays on the canvas, keeps a clear gap to everything it did not already
+    touch, and never covers more of anything it already touched. Pictures only: a hero with captions is left alone."""
+    from engine.safety import is_background
+    from engine.understand import understand
+    tw, th = layout["canvas"]["width"], layout["canvas"]["height"]
+    if tw <= 0 or th <= 0 or max(tw, th) >= EXTREME_RATIO * min(tw, th):
+        return
+    heroes = understand(source).heroes()
+    if not heroes:
+        return
+    hero = max(heroes, key=lambda u: (u.bbox[2] - u.bbox[0]) * (u.bbox[3] - u.bbox[1]))
+    ids = {m["id"] for m in hero.members}
+    if any(m["type"] == "text" or m.get("rotation") for m in hero.members):
+        return  # captions or turned pictures: their real footprint isn't the box, leave them be
+    els = [e for e in layout["elements"] if e["id"] in ids]
+    if not els or any(e.get("rotation") for e in els):
+        return
+    x0 = min(e["x"] for e in els); y0 = min(e["y"] for e in els)
+    x1 = max(e["x"] + e["width"] for e in els); y1 = max(e["y"] + e["height"] for e in els)
+    w, h = x1 - x0, y1 - y0
+    if w <= 0 or h <= 0:
+        return
+    gap = HERO_GROW_GAP * min(tw, th)
+    others = [e for e in layout["elements"] if e["id"] not in ids and not is_background(e, layout["canvas"])
+              and e.get("width", 0) > 0 and e.get("height", 0) > 0]
+
+    def box(e):
+        if e.get("type") == "text":
+            from engine.finalize import _ink_inside
+            return _ink_inside(e, tw, th)[1]
+        return (e["x"], e["y"], e["x"] + e["width"], e["y"] + e["height"])
+
+    def inter(a, b):
+        return max(0.0, min(a[2], b[2]) - max(a[0], b[0])) * max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+
+    obs = [box(e) for e in others]
+    old = (x0, y0, x1, y1)
+    before = [inter(old, o) for o in obs]
+    cap = min(HERO_GROW_MAX, (HERO_GROW_SHARE * tw * th / (w * h)) ** 0.5)
+    k = cap
+    while k >= HERO_GROW_MIN:
+        nw, nh = w * k, h * k
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        for ax, ay in ((cx, cy), (cx, y0 + nh / 2), (cx, y1 - nh / 2), (x0 + nw / 2, cy), (x1 - nw / 2, cy)):
+            nx0 = min(max(ax - nw / 2, 0.0), tw - nw); ny0 = min(max(ay - nh / 2, 0.0), th - nh)
+            if nx0 < -0.01 or ny0 < -0.01:
+                continue
+            new = (nx0, ny0, nx0 + nw, ny0 + nh)
+            padded = (new[0] - gap, new[1] - gap, new[2] + gap, new[3] + gap)
+            ok = True
+            for o, b in zip(obs, before):
+                if b > 0:
+                    if inter(new, o) > b + 1.0:  # already touching: may not cover more of it
+                        ok = False; break
+                elif inter(padded, o) > 0:
+                    ok = False; break
+            if not ok:
+                continue
+            for e in els:
+                e["x"] = round(nx0 + (e["x"] - x0) * k, 2)
+                e["y"] = round(ny0 + (e["y"] - y0) * k, 2)
+                e["width"] = e["width"] * k if e["width"] * k < 50 else round(e["width"] * k, 2)
+                e["height"] = e["height"] * k if e["height"] * k < 50 else round(e["height"] * k, 2)
+            return
+        k -= 0.05
+
+
 def _round(el: dict) -> dict:
     for k in ("x", "y", "width", "height", "corner_radius"):
         if k in el:
@@ -690,6 +765,10 @@ def resize(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
 
     try:
         out = _finalized(source, _smart(source, target_canvas))
+        try:
+            _grow_hero(source, out)
+        except Exception:
+            pass
         try:
             _close_gaps(out)
         except Exception:
