@@ -36,10 +36,154 @@ def _image(unit, h_max, w_max):
 def _media(unit, h_max, w_max):
     """An image unit as a list of elements. A bundle (image + its bar/aura/shadow, or a cluster of images) is scaled
     as one block so the parts keep their relative position and size."""
-    if len(unit.members) == 1:
+    if len(unit.members) == 1 and unit.members[0]["type"] == "image":
         return [_image(unit, h_max, w_max)]
     k = min(w_max / max(unit.w, 1e-6), h_max / max(unit.h, 1e-6))
+    if len(getattr(unit, "parts", []) or []) >= 2:
+        arranged = _arrange_set(unit, h_max, w_max, k)
+        if arranged is not None:
+            return arranged
     return _xform(unit, k, 0, 0)
+
+
+class _Piece:
+    def __init__(self, members):
+        from engine.understand import _bbox
+        self.members = members
+        self.bbox = _bbox(members)
+        self.w, self.h = self.bbox[2] - self.bbox[0], self.bbox[3] - self.bbox[1]
+
+
+def _tight_piece(members):
+    """A set piece re-arranged on its own: a caption that floated far above (or below) its picture is pulled in
+    close, so the empty space between them doesn't make every piece tall and small. Copies; the source is untouched."""
+    out = [copy.deepcopy(m) for m in members]
+    imgs = [m for m in out if m["type"] == "image"]
+    txts = [m for m in out if m["type"] == "text"]
+    if not imgs or not txts:
+        return out
+    top = min(m["y"] for m in imgs)
+    bot = max(m["y"] + m["height"] for m in imgs)
+    ih = bot - top
+    above = [t for t in txts if t["y"] + t["height"] <= top + 1]
+    below = [t for t in txts if t["y"] >= bot - 1]
+    want = 0.08 * ih
+    if above:
+        gap = top - max(t["y"] + t["height"] for t in above)
+        if gap > want:
+            for t in above:
+                t["y"] += gap - want
+    if below:
+        gap = min(t["y"] for t in below) - bot
+        if gap > want:
+            for t in below:
+                t["y"] -= gap - want
+    return out
+
+
+TARGET = (0.0, 0.0)  # the canvas being laid out (set by resize.candidates); lets a set match its orientation
+ORIENT_KEEP = 0.75  # a set may give up this much size (linear) to follow the canvas: stack on tall, row on wide
+
+
+def _arrange_set(unit, h_max, w_max, k_as_is):
+    """An ordered set (before / after / right after, a menu of products) re-arranged to suit the space: the original
+    line, a row, a column, or a grid, keeping reading order. Each piece keeps its own inner layout (label over
+    picture). On a tall canvas it prefers stacking, on a wide one a row - as long as the pieces stay at least
+    ORIENT_KEEP of the biggest size any arrangement allows. Returns None when the original arrangement is best."""
+    import math
+    pieces = [_Piece(_tight_piece(m)) for m in unit.parts]
+    n = len(pieces)
+    pw, ph = max(p.w for p in pieces), max(p.h for p in pieces)
+    gap = 0.12 * min(pw, ph)
+    options = []
+    for cols in sorted({n, 1, math.ceil(math.sqrt(n)), math.ceil(n / 2)}):
+        rows = math.ceil(n / cols)
+        W = cols * pw + (cols - 1) * gap
+        H = rows * ph + (rows - 1) * gap
+        options.append((min(w_max / W, h_max / H), cols))
+    tw, th = TARGET
+    if tw >= BANNER_RATIO * th > 0:  # a banner: pieces flow side by side at one scale, each only as wide as itself
+        flow = _flow_rows(pieces, h_max, w_max)
+        if flow is not None and flow[0] >= FLOW_KEEP * k_as_is:
+            return flow[1]
+    k_top = max([k for k, _ in options] + [k_as_is])
+    tall, wide = th >= 1.25 * tw > 0, tw >= 1.25 * th > 0
+    ok = [(k, c) for k, c in options if k >= ORIENT_KEEP * k_top]
+    if tall and ok:
+        best = min(ok, key=lambda t: (t[1], -t[0]))  # fewest columns = most stacked
+    elif wide and ok:
+        best = max(ok, key=lambda t: (t[1], t[0]))   # most columns = a row
+    else:
+        best = max(options)
+        best = best if best[0] >= 1.1 * k_as_is else (k_as_is, None)  # otherwise it must beat the original by 10%
+    as_is_fits = (unit.set_axis == "y" and tall) or (unit.set_axis == "x" and wide)
+    if as_is_fits and best[1] is not None and (best[1] == 1) == (unit.set_axis == "y") and best[0] < 1.1 * k_as_is:
+        best = (k_as_is, None)  # the original already follows the canvas and is as big: keep it
+    if best[1] is None:
+        return None
+    k, cols = best
+    out = []
+    rows_n = math.ceil(n / cols)
+    for i, p in enumerate(pieces):
+        r, c = divmod(i, cols)
+        in_row = cols if r < rows_n - 1 else n - cols * (rows_n - 1)
+        shift = (cols - in_row) * (pw + gap) / 2  # a short last row is centred
+        cx = (shift + c * (pw + gap) + pw / 2) * k
+        cy = (r * (ph + gap) + ph / 2) * k
+        out += _xform(p, k, cx, cy)
+    return out
+
+
+BANNER_RATIO = 2.5  # target width / height from which a canvas counts as a banner strip
+FLOW_KEEP = 0.6  # a banner flow's smallest card may be this much smaller than the composition (it fills the strip)
+FLOW_SPREAD = 1.6  # in a banner flow, card scales stay within this factor of each other
+
+
+def _flow_rows(pieces, h_max, w_max):
+    """Product cards along a banner, in 1-3 rows, reading order kept. Cards get a common VISUAL height (a tall card
+    and a wide one end up the same height, the way a designer lines up a catalogue), each card scale kept within
+    FLOW_SPREAD of the others; each takes only its own width. Returns (smallest scale, elements) or None."""
+    n = len(pieces)
+    asp = [p.w / max(p.h, 1e-6) for p in pieces]
+    best = None
+    for r in range(1, min(3, n) + 1):
+        # split in order into r rows with balanced total aspect (= balanced width at equal height)
+        total = sum(asp)
+        rows, cur, acc = [], [], 0.0
+        for i, a in enumerate(asp):
+            if cur and acc + a / 2 > total / r * (len(rows) + 1) and len(rows) < r - 1:
+                rows.append(cur); cur = []
+            cur.append(i); acc += a
+        rows.append(cur)
+        gap_f = 0.08  # gap as a share of the row height
+        # row height hh: each row's width = hh * (sum aspects + gaps) <= w_max; all rows + gaps <= h_max
+        need = max(sum(asp[i] for i in row) + gap_f * (len(row) - 1) for row in rows)
+        hh = min(w_max / max(need, 1e-6), h_max / (r + gap_f * (r - 1)))
+        if best is None or hh > best[0] * 1.02:
+            best = (hh, rows)
+    if best is None:
+        return None
+    hh, rows = best
+    ks = [hh / max(p.h, 1e-6) for p in pieces]
+    lo = max(ks) / FLOW_SPREAD  # nothing shrinks to a speck next to the others
+    ks = [max(k, lo) for k in ks]
+    hi = min(ks) * FLOW_SPREAD
+    ks = [min(k, hi) for k in ks]
+    gap = 0.08 * hh
+    widths = [[pieces[i].w * ks[i] for i in row] for row in rows]
+    heights = [max(pieces[i].h * ks[i] for i in row) for row in rows]
+    W = max(sum(w) + gap * (len(w) - 1) for w in widths)
+    Ht = sum(heights) + gap * (len(rows) - 1)
+    f = min(1.0, w_max / max(W, 1e-6), h_max / max(Ht, 1e-6))  # clamping may have made it a bit too big: fit
+    out, y = [], 0.0
+    for row, ws, h in zip(rows, widths, heights):
+        x = (W - sum(ws) - gap * (len(ws) - 1)) / 2
+        for i, w in zip(row, ws):
+            p, k = pieces[i], ks[i] * f
+            out += _xform(p, k, (x + w / 2) * f, (y + h - p.h * ks[i] / 2) * f)  # bottom-aligned on the row
+            x += w + gap
+        y += h + gap
+    return min(ks) * f, out
 
 
 def _pill(unit, h):
@@ -49,6 +193,13 @@ def _pill(unit, h):
     fs = max(6, int(h * 0.42))
     w = measure_text(label, fs, 10000)["max_line_width"] + 1.1 * h
     s, t = copy.deepcopy(shape), copy.deepcopy(label)
+    if shape.get("shape_type") == "ellipse":  # a round badge/button stays round: keep its shape, fit the label inside
+        w = h * shape["width"] / max(shape["height"], 1e-6)
+        fs, m, _ = fit_size(label, 0.74 * w, 0.62 * h, max(6, int(h * 0.42)), min_size=5)
+        s.update(width=w, height=h, x=0.0, y=0.0)
+        t.update(font_size=fs, width=w, x=0.0, y=(h - m["height"]) / 2)
+        t["height"] = m["height"]
+        return [s, t], w
     ratio = (shape.get("corner_radius") or 0) / max(shape["height"], 1e-6)
     s.update(width=w, height=h, x=0.0, y=0.0)
     if "corner_radius" in s:
@@ -56,6 +207,13 @@ def _pill(unit, h):
     t.update(font_size=fs, width=w, x=0.0, y=h / 2 - CAP_CENTER * fs)
     t["height"] = measure_text(t, fs, w)["height"]
     return [s, t], w
+
+
+def _logo_hmax(design: Design, unit, TW: float, TH: float) -> float:
+    """Tallest the logo may be: at most twice its original share of the canvas area (a corner mark must not
+    become the biggest thing in a banner)."""
+    sw, sh = design.canvas["width"], design.canvas["height"]
+    return unit.h * (2.0 * TW * TH / (sw * sh)) ** 0.5
 
 
 def _head_cap(design: Design, TW: float, TH: float) -> float:
@@ -77,6 +235,14 @@ def _ratio(unit, el, head):
     if PRICE.search(str(el.get("content", ""))) and len(str(el.get("content", "")).split()) <= 3:
         r = max(r, 0.5)  # a price must not shrink into the small print
     return max(r, 0.6) if unit.role == "cta_text" else r
+
+
+def _ratios_without_head(design: Design, units: list) -> list:
+    """Texts sized against the biggest font in the design when the headline is not one of them (it sits inside
+    a lockup that is placed as a block). The stack size S then stands for the headline size, so small texts stay
+    small instead of growing to headline size."""
+    ref = max([design.ref_font] + [u.members[0]["font_size"] for u in units])
+    return [(u.members[0], max(0.15, min(1.0, u.members[0]["font_size"] / ref))) for u in units]
 
 
 def _is_simple_pill(unit):
@@ -188,12 +354,12 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
     cols = []
 
     # media
-    for u in by("logo"):
-        e = _image(u, ch * P["logo"], 0.25 * TW * P.get("wcap", 1.0))
-        cols.append(_col([e]))
-    for u in by("product") + by("image"):
+    for u in by("logo"):  # a lockup (logo + slogan) scales as one block
+        cols.append(_col(_media(u, min(ch * P["logo"], _logo_hmax(design, u, TW, TH)), 0.25 * TW * P.get("wcap", 1.0))))
+    for u in sorted(by("product") + by("image"), key=lambda u: u.order):
         full = bool(P.get("fullh")) and u.role == "product"
-        c = _col(_media(u, ((TH - 2 * pad) if full else ch) * P["prod"], 0.3 * TW * P.get("wcap", 1.0)))
+        wcap = (0.68 if len(getattr(u, "parts", []) or []) >= 2 and TW >= BANNER_RATIO * TH else 0.3)
+        c = _col(_media(u, ((TH - 2 * pad) if full else ch) * P["prod"], wcap * TW * P.get("wcap", 1.0)))
         c["full"] = full
         cols.append(c)
 
@@ -245,13 +411,14 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
     items = []
     if heads:
         hd = heads[0].members[0]
+        rest = sorted(by("supporting") + by("text") + by("cta_text"), key=lambda u: u.order)
+        # text that reads before the headline in the source (a kicker) stays before it
+        items += [(u.members[0], _ratio(u, u.members[0], hd)) for u in rest if u.order < heads[0].order]
         items.append((hd, 1.0))
-        for u in sorted(by("supporting") + by("text") + by("cta_text"), key=lambda u: u.order):
-            e = u.members[0]
-            items.append((e, _ratio(u, e, hd)))
+        items += [(u.members[0], _ratio(u, u.members[0], hd)) for u in rest if u.order >= heads[0].order]
     elif by("supporting") + by("text") + by("cta_text"):
-        for u in by("supporting") + by("text") + by("cta_text"):
-            items.append((u.members[0], 1.0))
+        rest = sorted(by("supporting") + by("text") + by("cta_text"), key=lambda u: u.order)
+        items += _ratios_without_head(design, rest)
     n_cols = len(cols) + (1 if items else 0)
     if items and P.get("tfrac") and cols:
         room = avail - P["tfrac"] * avail - gap * (n_cols - 1)  # width the other columns may keep
@@ -358,7 +525,7 @@ def layout_row(design: Design, TW: float, TH: float, P: dict):
 
 ROW_TIGHT_PARAMS = [
     {"logo": lg, "prod": 1.0, "cta": ct, "badges": bm, "wcap": 1.0, "tfrac": tf, "pad": pd, "fullh": fh}
-    for lg in (0.5, 0.3) for ct in (0.38, 0.28) for bm in ("col", "row") for tf in (0.45, 0.58)
+    for lg in (0.5, 0.3) for ct in (0.38, 0.28) for bm in ("col", "row") for tf in (0.22, 0.32, 0.45, 0.58)
     for pd in (1.0, 0.5) for fh in (False, True)
 ]
 ROW_PARAMS = [
@@ -406,15 +573,19 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
     gmin = max(4.0, P.get("need_gap", 0.012) * H)
     sc = max(1.0, min(Wc, H) / 800)  # size caps below were tuned for ~1080px canvases
     items: list = []
+    logo_items = []
     if "logo" in parts:
         for u in by("logo"):
-            items.append(_col([_image(u, P.get("logo_h", 0.12) * H, P["logo"] * Wc)]))
+            # the column (Wc x H) stands in for the canvas here: slightly smaller, so the cap errs small
+            logo_items.append(_col(_media(u, min(P.get("logo_h", 0.12) * H, _logo_hmax(design, u, Wc, H)), P["logo"] * Wc)))
+    if not P.get("logo_last"):
+        items += logo_items
     if "ribbon" in parts:
         for u in by("ribbon"):
             k = min(1.0, 0.6 * Wc / max(u.w, 1e-6), 0.08 * H / max(u.h, 1e-6))
             items.append(_col(_xform(u, k, 0, 0)))
     if "product" in parts:
-        for u in by("product") + by("image"):
+        for u in sorted(by("product") + by("image"), key=lambda u: u.order):
             items.append(_col(_media(u, P["prod"] * H, P.get("pw", 0.85) * Wc)))
 
     text_at, texts_src = None, []
@@ -423,10 +594,11 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
         heads = by("headline")
         if heads:
             hd = heads[0].members[0]
+            texts_src += [(u.members[0], _ratio(u, u.members[0], hd)) for u in rest if u.order < heads[0].order]
             texts_src.append((hd, 1.0))
-            texts_src += [(u.members[0], _ratio(u, u.members[0], hd)) for u in rest]
+            texts_src += [(u.members[0], _ratio(u, u.members[0], hd)) for u in rest if u.order >= heads[0].order]
         else:
-            texts_src = [(u.members[0], 1.0) for u in rest]
+            texts_src = _ratios_without_head(design, rest)
         if texts_src:
             text_at = len(items)
             items.append(None)  # filled in once we know how much height is left
@@ -453,6 +625,8 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
         for u in by("group") + by("shape") + [b for b in badges if not _is_simple_pill(b)]:
             items.append(_col(_xform(u, min(1.0, 0.8 * Wc / max(u.w, 1e-6), 0.1 * H / max(u.h, 1e-6)), 0, 0)))
 
+    if P.get("logo_last"):  # the logo signed off the source design (under the text): keep it last
+        items += logo_items
     fine_cap = None
     if text_at is not None:
         used = sum(i["h"] for i in items if i)
@@ -566,8 +740,14 @@ def layout_split(design: Design, TW: float, TH: float, P: dict):
     if Wm < 40 or Wt < 80 or H < 60:
         return None
     P = dict(P, hcap_abs=min(P.get("hcap_abs", 1e9), _head_cap(design, TW, TH)))
-    left = _column(design, Wm, H, P, {"logo", "product"})
-    right = _column(design, Wt, H, P, {"ribbon", "text", "badges", "cta", "odd"})
+    if P.get("logo_text"):  # the picture gets the whole media column; the logo joins the text (as in Heinz)
+        logo, head = design.first("logo"), design.first("headline")
+        last = bool(logo and head and logo.order > head.order)
+        left = _column(design, Wm, H, P, {"product"})
+        right = _column(design, Wt, H, dict(P, logo_last=last), {"logo", "ribbon", "text", "badges", "cta", "odd"})
+    else:
+        left = _column(design, Wm, H, P, {"logo", "product"})
+        right = _column(design, Wt, H, P, {"ribbon", "text", "badges", "cta", "odd"})
     if left is None or right is None or not left[0] or not right[0]:
         return None
     out: dict[str, dict] = {}
@@ -586,6 +766,11 @@ STACK_PARAMS = [
 SPLIT_WIDE_PARAMS = [
     {"mw": mw, "logo": 0.7, "logo_h": 0.18, "prod": pf, "hcap": hc, "cta": 0.1, "pad": pd, "pw": 0.97}
     for mw in (0.5, 0.58, 0.66) for pf in (0.9, 1.0) for hc in (0.08, 0.12) for pd in (1.0, 0.5)
+]
+# picture fills the media column at full height, logo moves into the text column (keeps its source order)
+SPLIT_WIDE_PARAMS += [
+    {"mw": mw, "logo": 0.6, "logo_h": 0.14, "prod": 1.0, "hcap": hc, "cta": 0.1, "pad": pd, "pw": 0.97, "logo_text": True}
+    for mw in (0.4, 0.5, 0.58) for hc in (0.08, 0.12, 0.16) for pd in (1.0, 0.5)
 ]
 STACK_TIGHT_PARAMS = [
     {"logo": 0.45, "prod": pf, "hcap": hc, "cta": 0.07, "gcap": 0.07, "rc": False, "pad": 0.5, "pw": pw}

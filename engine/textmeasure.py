@@ -48,6 +48,14 @@ def _style(el: dict) -> tuple[str, str]:
     return weight, style
 
 
+def letter_spacing_at(el: dict, size: float) -> float:
+    """Letter spacing (px) at a given font size. Spacing is part of the type style, so it scales with the font:
+    the engine keeps spacing / font_size the same as the source (see resize.scale_letter_spacing)."""
+    ls = float(el.get("letter_spacing") or 0.0)
+    fs = float(el.get("font_size") or 0.0)
+    return ls * size / fs if ls and fs > 0 else 0.0
+
+
 def measure_text(el: dict, font_size: float | None = None, width: float | None = None) -> dict:
     """Wrap `el`'s content at `font_size` into `width` the way the renderer does.
 
@@ -59,10 +67,11 @@ def measure_text(el: dict, font_size: float | None = None, width: float | None =
     content = str(el.get("content", ""))
     weight, style = _style(el)
     widths = _widths(el.get("font_family", "Montserrat"), weight, style, size, content)
-    lines = wrap_text(content, list(widths), box_w).split("\n")
+    lines = wrap_text(content, list(widths), box_w).split("\n")  # the renderer wraps WITHOUT letter spacing...
+    ls = letter_spacing_at(el, size)  # ...but draws every gap between letters this much wider
     pos, line_w = 0, []
     for ln in lines:
-        line_w.append(sum(widths[pos:pos + len(ln)]))
+        line_w.append(sum(widths[pos:pos + len(ln)]) + ls * max(len(ln) - 1, 0))
         pos += len(ln) + 1  # the newline replaced one space
     pitch = size * float(el.get("line_height") or DEFAULT_LINE_HEIGHT)
     return {

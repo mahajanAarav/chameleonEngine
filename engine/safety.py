@@ -131,6 +131,8 @@ def safety_resize(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict
 
     for el in elements:
         for k in ("x", "y", "width", "height"):
+            if el.get("type") == "image" and k in ("width", "height") and el[k] < 50:
+                continue  # tiny pictures keep full precision (rounding would bend their proportions)
             el[k] = round(el[k], 2)
         if "corner_radius" in el:
             el["corner_radius"] = round(el["corner_radius"], 2)

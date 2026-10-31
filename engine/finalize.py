@@ -62,11 +62,45 @@ def _fix_rotated_text(e, tw, th):
         e["y"] += -min(0.0, y0) - max(0.0, y1 - th)
 
 
+def _fit_spaced(e, tw, th):
+    """Wide letter spacing: the renderer wraps on the letters alone, then spreads them out, so a line can come out
+    much wider than its box. Steps, gentlest first, until the spread-out ink fits the canvas:
+      move the ink inside -> narrow the box (more, shorter lines; flat text that still has height to spare)
+      -> smaller type (spacing shrinks with it) -> tighter spacing (only for absurd spacing on 1px type)."""
+    if not e.get("letter_spacing"):
+        return
+    base_w = e["width"]
+    for _ in range(150):
+        ok, (x0, y0, x1, y1) = _ink_inside(e, tw, th)
+        if ok:
+            return
+        w_ink, h_ink = x1 - x0, y1 - y0
+        if w_ink <= tw + TOL and h_ink <= th + TOL:  # it fits: move the ink (not the box) inside
+            e["x"] += -min(0.0, x0) - max(0.0, x1 - tw)
+            e["y"] += -min(0.0, y0) - max(0.0, y1 - th)
+            continue
+        if not e.get("rotation") and w_ink > tw + TOL and h_ink < 0.8 * th and e["width"] > 1.0:
+            e["width"] = max(1.0, e["width"] * 0.85)
+        elif e["font_size"] > 1:
+            new = max(1, int(e["font_size"] * 0.9))
+            e["letter_spacing"] = round(e["letter_spacing"] * new / e["font_size"], 3)
+            e["font_size"] = new
+            e["width"] = min(base_w, tw) if not e.get("rotation") else e["width"]
+        elif abs(e["letter_spacing"]) > 0.01:
+            e["letter_spacing"] = round(e["letter_spacing"] * 0.7, 3)
+        elif e["width"] > 1.0:
+            e["width"] = max(1.0, e["width"] * 0.85)
+        else:
+            return
+        e["height"] = measure_text(e)["height"]
+
+
 def _fix_text(e, tw, th):
     if _ink_inside(e, tw, th)[0]:
         return  # the text is on the canvas: all the rules ask, so leave the layout alone
     if e.get("rotation"):
         _fix_rotated_text(e, tw, th)
+        _fit_spaced(e, tw, th)
         return
     width = min(max(e["width"], 1.0), tw)
     size, m, ok = fit_size(e, width, th, e["font_size"], min_size=1)
@@ -78,9 +112,16 @@ def _fix_text(e, tw, th):
     e["height"] = m["height"]
     e["x"] = min(max(e["x"], 0.0), max(0.0, tw - width))
     e["y"] = min(max(e["y"], 0.0), max(0.0, th - m["height"]))
+    _fit_spaced(e, tw, th)
 
 
 def _fix_other(e, tw, th):
+    # a thin divider or tiny shape must never vanish: keep at least 1px each way (grow about its centre)
+    if e.get("type") == "shape":  # images keep their proportion, so only shapes get the 1px floor
+        for k, pos in (("width", "x"), ("height", "y")):
+            if e[k] < 1.0:
+                e[pos] -= (1.0 - e[k]) / 2
+                e[k] = 1.0
     if _inside(e, tw, th):
         return
     _shift_inside(e, tw, th)
@@ -110,5 +151,7 @@ def finalize(layout: dict) -> dict:
             continue  # never let a repair step crash the engine
         for k in ("x", "y", "width", "height", "corner_radius"):
             if k in e:
+                if e.get("type") == "image" and k in ("width", "height") and e[k] < 50:
+                    continue  # tiny pictures keep full precision (rounding would bend their proportions)
                 e[k] = round(e[k], 2)
     return layout

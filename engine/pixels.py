@@ -109,3 +109,66 @@ def asset_size(asset_id: str):
             return im.size
     except Exception:
         return None
+
+
+def hidden_fraction(lower: dict, upper: dict, grid: int = 40):
+    """How much of `lower`'s visible picture is covered by `upper`'s visible pixels, in the source layout.
+
+    0.0 = they only touch (or overlap where one is transparent): safe to take apart.
+    Higher = part of the lower picture is hidden; that part does not exist in its file, so separating them would
+    show a picture with a piece missing. Returns None when an asset can't be read (caller falls back to boxes).
+    """
+    a, b = asset_array(lower.get("asset_id")), asset_array(upper.get("asset_id"))
+    if a is None or b is None or lower["width"] <= 0 or lower["height"] <= 0 or upper["width"] <= 0 or upper["height"] <= 0:
+        return None
+    seen = covered = 0
+    for i in range(grid):
+        for j in range(grid):
+            u, v = (i + 0.5) / grid, (j + 0.5) / grid
+            ya, xa = min(int(v * a.shape[0]), a.shape[0] - 1), min(int(u * a.shape[1]), a.shape[1] - 1)
+            if a[ya, xa, 3] < 0.5:
+                continue
+            seen += 1
+            cx, cy = lower["x"] + u * lower["width"], lower["y"] + v * lower["height"]
+            ub, vb = (cx - upper["x"]) / upper["width"], (cy - upper["y"]) / upper["height"]
+            if 0 <= ub < 1 and 0 <= vb < 1:
+                yb, xb = min(int(vb * b.shape[0]), b.shape[0] - 1), min(int(ub * b.shape[1]), b.shape[1] - 1)
+                covered += b[yb, xb, 3] >= 0.5
+    return covered / seen if seen else 0.0
+
+
+def bite_fraction(lower: dict, upper: dict):
+    """How much of `lower`'s outline runs along `upper`'s opaque pixels, in the source layout.
+
+    A picture that was cut out from behind another one (a logo behind a person's head) has an outline that FOLLOWS
+    the front picture: a bite. The bitten part does not exist in its file, so the two can't be shown apart. Two
+    products that merely touch share only a few outline pixels. Returns 0..1, or None when an asset can't be read.
+    """
+    a, b = asset_array(lower.get("asset_id")), asset_array(upper.get("asset_id"))
+    if a is None or b is None or min(lower["width"], lower["height"], upper["width"], upper["height"]) <= 0:
+        return None
+    op = a[..., 3] >= 0.5
+    h, w = op.shape
+    if h < 3 or w < 3:
+        return 0.0
+    pad = np.pad(op, 1, constant_values=False)
+    inner = pad[1:-1, 1:-1]
+    hole_next = ~pad[:-2, 1:-1] | ~pad[2:, 1:-1] | ~pad[1:-1, :-2] | ~pad[1:-1, 2:]
+    edge = inner & hole_next
+    edge[0, :] = edge[-1, :] = edge[:, 0] = edge[:, -1] = False  # the file's own border is a crop, not a bite
+    ys, xs = np.nonzero(edge)
+    if len(xs) < 8:
+        return 0.0
+    cx = lower["x"] + (xs + 0.5) / w * lower["width"]
+    cy = lower["y"] + (ys + 0.5) / h * lower["height"]
+    r = max(2.0, 0.02 * min(lower["width"], lower["height"]))
+    bh, bw = b.shape[:2]
+    hit = np.zeros(len(xs), bool)
+    for dx, dy in ((0, 0), (r, 0), (-r, 0), (0, r), (0, -r)):
+        ub = (cx + dx - upper["x"]) / upper["width"]
+        vb = (cy + dy - upper["y"]) / upper["height"]
+        inside = (ub >= 0) & (ub < 1) & (vb >= 0) & (vb < 1)
+        xb = np.clip((ub * bw).astype(int), 0, bw - 1)
+        yb = np.clip((vb * bh).astype(int), 0, bh - 1)
+        hit |= inside & (b[yb, xb, 3] >= 0.5)
+    return float(hit.mean())
