@@ -177,6 +177,11 @@ Claude subagents that could render and iterate) and `data/judgments/` (blind pic
   words) instead of being spread thousands of pixels apart. Tiny pictures keep full size precision, so a 0.3 px icon
   keeps its exact proportions (5000x2 is now rule-clean for everything except one rotated label that is taller
   than a 2 px canvas). Normal sizes are untouched.
+- Round 8 (Oct 30, night; Target same-day, Chipotle x2, Taco Bell x2, Starbucks x2): a headline that sat above the
+  pictures stays above them in tall/square stacks when that keeps 80% of the hero/headline balance (`text_first`
+  stack variants + an order key); when the winning layout's text sits on a poor background, its mirror image is
+  tried too (Starbucks banner headline was green on green). 178 designs 0 rule errors; 336 unusual sizes 0 rule
+  errors; fuzz 300 0 errors; reference score 32.6 / 31.8 (unchanged).
 - Known limits: in very small formats (300x250, 728x90) the longest fine print or a rotated ribbon label can still end
   up around 4px; the rules forbid dropping it, so it stays, small.
 - Open questions for the organisers are listed in `docs/ORGANISER_NOTES.md`.

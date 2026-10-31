@@ -335,6 +335,7 @@ def _panel_intruders(source: dict, layout: dict) -> int:
     return n
 
 
+ORDER_BAL = 0.8  # a headline that was above the pictures stays above if hero/headline balance keeps 80% of the best
 CATALOGUE_GAIN = 1.05  # a banner catalogue re-flow must show this much more product (linear, total picture area)
 INVERSION_GAP = 0.75  # "clearly smaller than the headline" in the source
 
@@ -465,9 +466,15 @@ def candidates(source: dict[str, Any], target_canvas: dict[str, Any]) -> list:
         if tw / th <= 1.6:
             from engine.layout import story_variants
             story = 0.5 <= tw / th <= 0.6 and tw >= 500
-            templates.append((layout_stack, STACK_PARAMS + STACK_TIGHT_PARAMS
-                              + (story_variants(STACK_TIGHT_PARAMS + STACK_PARAMS[::4]) if story else [])))
-            templates.append((layout_stack_grow, GROW_STACK_PARAMS + (story_variants(GROW_STACK_PARAMS) if story else [])))
+            from engine.layout import head_on_top
+            stack_ps = STACK_PARAMS + STACK_TIGHT_PARAMS + (story_variants(STACK_TIGHT_PARAMS + STACK_PARAMS[::4]) if story else [])
+            if head_on_top(design):  # the title was above the product: also try keeping it there
+                stack_ps = stack_ps + [dict(P, text_first=True) for P in stack_ps[::2]]
+            templates.append((layout_stack, stack_ps))
+            grow_ps = GROW_STACK_PARAMS + (story_variants(GROW_STACK_PARAMS) if story else [])
+            if head_on_top(design):
+                grow_ps = grow_ps + [dict(P, text_first=True) for P in grow_ps[::2]]
+            templates.append((layout_stack_grow, grow_ps))
         if 1.0 <= tw / th <= 3.0:
             templates.append((layout_split, SPLIT_PARAMS + SPLIT_WIDE_PARAMS))
             templates.append((layout_split_grow, GROW_SPLIT_PARAMS))
@@ -617,17 +624,52 @@ def _smart(source: dict[str, Any], target_canvas: dict[str, Any]) -> dict[str, A
     best_bal = max((balance(m) for _, _, m in pool if m["hero_ratio"] >= hero_floor), default=0.0)
     inv = {name: _inversions(source, c) for name, c, _ in scored}
     best_inv = min((inv[n] for n, _, _ in pool), default=0)
-    best, best_key = None, (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1.0)
-    for name, c, m in scored:
+    best, best_key = None, (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1.0)
+    from engine.layout import head_on_top
+    _d = understand(source)
+    _top = head_on_top(_d)
+    _hid = _d.first("headline").members[0]["id"] if _top else None
+    _pids = {m["id"] for u in _d.by_role("product") + _d.by_role("image") for m in u.members if m["type"] == "image"}
+
+    def order_kept(c):
+        """A headline that was above the pictures is still above them (only matters when everything else ties)."""
+        if not _top:
+            return True
+        by = {e["id"]: e for e in c["elements"]}
+        h = by.get(_hid)
+        ps = [by[i] for i in _pids if i in by]
+        if h is None or not ps:
+            return True
+        return h["y"] + h["height"] / 2 <= min(p["y"] + p["height"] / 2 for p in ps)
+
+    def key_of(name, c, m, v, i):
         value = picker.predict(m, name, tw, th) if picker else m["score"]
         # collisions first; when NO layout is collision-free, the cleaner one still wins (graded, not pass/fail)
-        key = (round(min(m["overlap"], OVERLAP_OK), 2), vis[name] >= best_vis, m["logo"] >= LOGO_OK, m["readability"] >= SIZE_FRAC * best_size,
-               m["hero_ratio"] >= hero_floor, inv[name] <= best_inv,
-               follows(c) and m["hero_ratio"] >= ORIENT_HERO * hero_cap,
-               balance(m) >= BALANCE_FRAC * best_bal,
-               m["text_readable"] >= READ_FRAC * best_read, value)
+        return (round(min(m["overlap"], OVERLAP_OK), 2), v >= best_vis, m["logo"] >= LOGO_OK, m["readability"] >= SIZE_FRAC * best_size,
+                m["hero_ratio"] >= hero_floor, i <= best_inv,
+                follows(c) and m["hero_ratio"] >= ORIENT_HERO * hero_cap,
+                order_kept(c) and balance(m) >= ORDER_BAL * best_bal,  # title stays on top if that costs little
+                balance(m) >= BALANCE_FRAC * best_bal,
+                m["text_readable"] >= READ_FRAC * best_read, value)
+
+    best_m, best_name = None, None
+    for name, c, m in scored:
+        key = key_of(name, c, m, vis[name], inv[name])
         if key > best_key:
-            best, best_key = c, key
+            best, best_key, best_m, best_name = c, key, m, name
+    # the winner's text sits on a poor background (green type on a green band): try its mirror image too - only the
+    # top-scoring layouts got a mirrored twin above, and the winner is not always among them
+    if best is not None and best_m is not None and best_m["text_readable"] < 0.95:
+        try:
+            mc = _mirror(best)
+            mm = metrics(source, mc)
+            if not mm["errors"] and mm["text_readable"] >= best_m["text_readable"] + MIRROR_GAIN:
+                mk = key_of(best_name + "+mirror", mc, mm, _visible_text(source, mc) - _panel_intruders(source, mc),
+                            _inversions(source, mc))
+                if mk[:-1] >= best_key[:-1]:
+                    best = mc
+        except Exception:
+            pass
     return best if best is not None else safety_resize(source, target_canvas)
 
 

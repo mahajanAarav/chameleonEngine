@@ -563,6 +563,15 @@ def _pill_rows(units, h, Wc, gap_x):
     return els, Wc, len(rows) * h + (len(rows) - 1) * gap_x
 
 
+def head_on_top(design: Design) -> bool:
+    """Did the headline sit above every picture in the source (a title over the product)?"""
+    head = design.first("headline")
+    pics = design.by_role("product") + design.by_role("image")
+    if head is None or not pics:
+        return False
+    return head.bbox[3] <= min(u.bbox[1] for u in pics) + 0.02 * design.canvas["height"]
+
+
 def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
     """Blocks (top to bottom) for the chosen parts, sized for a column Wc wide and H tall.
 
@@ -584,9 +593,12 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
         for u in by("ribbon"):
             k = min(1.0, 0.6 * Wc / max(u.w, 1e-6), 0.08 * H / max(u.h, 1e-6))
             items.append(_col(_xform(u, k, 0, 0)))
+    prod_items = []
     if "product" in parts:
         for u in sorted(by("product") + by("image"), key=lambda u: u.order):
-            items.append(_col(_media(u, P["prod"] * H, P.get("pw", 0.85) * Wc)))
+            prod_items.append(_col(_media(u, P["prod"] * H, P.get("pw", 0.85) * Wc)))
+    if not P.get("text_first"):
+        items += prod_items
 
     text_at, texts_src = None, []
     if "text" in parts:
@@ -602,6 +614,8 @@ def _column(design: Design, Wc: float, H: float, P: dict, parts: set):
         if texts_src:
             text_at = len(items)
             items.append(None)  # filled in once we know how much height is left
+    if P.get("text_first"):  # the headline sat above the pictures in the source: keep it on top
+        items += prod_items
 
     badges = sorted(by("badge"), key=lambda u: u.order)
     simple = [u for u in badges if _is_simple_pill(u)]
